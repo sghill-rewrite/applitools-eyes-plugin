@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+  This plugin adds Applitools Eyes test results to your Jenkins build report.
+</div>
