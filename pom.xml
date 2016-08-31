@@ -10,17 +10,27 @@
     <relativePath/>
   </parent>
   <artifactId>applitools-eyes</artifactId>
-  <version>1.0</version>
+  <version>1.1</version>
   <packaging>hpi</packaging>
-  <name>Jenkins Applitools Plugin</name>
-  <url>https://wiki.jenkins-ci.org/display/JENKINS/Applitools+Plugin</url>
+  <name>Applitools Eyes Plugin</name>
+  <url>https://wiki.jenkins-ci.org/display/JENKINS/Applitools+Eyes+Plugin</url>
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
 
+  <!-- Should be updated once in forked in the Jenkins repo -->
+  <!-- Should be updated once in forked in the Jenkins repo
   <scm>
     <connection>scm:git:git://github.com/jenkinsci/eyes.jenkins.git</connection>
     <developerConnection>scm:git:git@github.com:jenkinsci/${project.artifactId}-plugin.git</developerConnection>
     <url>http://github.com/jenkinsci/${project.artifactId}-plugin</url>
-    <tag>applitools-eyes-1.0</tag>
+    <tag>applitools-eyes-1.1</tag>
   </scm>
+  -->
 
   <properties>
     <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
