@@ -6,4 +6,4 @@ To deploy a built version, execute
 
 	mvn clean;mvn install 
 
-Defects/enhancements can be recorded at https://issues.jenkins-ci.org/browse/..
+
