@@ -16,7 +16,7 @@ import hudson.model.JobProperty;
 import org.kohsuke.stapler.QueryParameter;
 import java.net.URL;
 /**
- * Created by addihorowitz on 8/28/16.
+ * Code for the build page.
  */
 
 public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable {
@@ -109,8 +109,9 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
         protected static boolean validURL(String url)
         {
+            // Just making sure the URL is valid.
             try {
-                URL serverURL = new URL(url);
+                new URL(url);
             } catch (Exception ex) {
                 return false;
             }
