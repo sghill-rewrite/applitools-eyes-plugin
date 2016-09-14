@@ -1,8 +1,5 @@
 package com.applitools.jenkins;
 
-/**
- * Created by addihorowitz on 8/11/16.
- */
 import hudson.model.AbstractBuild;
 import java.io.StringWriter;
 import java.io.PrintWriter;
@@ -35,7 +32,7 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
             }
 
             return "<iframe id=\"frame\" src=\"" + serverURL +
-                    "\" style=\"overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:600px;width:1024px;max-width:100%;resize:vertical;\"></iframe>\n";
+                    "\" style=\"overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:710px;width:1024px;max-width:100%;resize:vertical;\"></iframe>\n";
         }
         catch (Exception ex)
         {
