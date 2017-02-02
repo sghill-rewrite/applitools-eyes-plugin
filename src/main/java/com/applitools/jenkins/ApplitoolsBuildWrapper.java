@@ -63,7 +63,8 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     private void buildEnvVariablesForExternalUsage(Map<String, String> env, final AbstractBuild build, final BuildListener listener)
     {
         String batchId = ApplitoolsStatusDisplayAction.generateBatchId(build.getProject().getDisplayName(), build.getNumber(), build.getTimestamp());
-        ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchId);
+        String batchName = build.getProject().getDisplayName();
+        ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId);
     }
 
     private void updateProjectProperties(final AbstractBuild build) throws IOException
