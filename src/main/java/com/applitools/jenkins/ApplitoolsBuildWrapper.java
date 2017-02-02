@@ -15,10 +15,10 @@ import hudson.util.FormValidation;
 import hudson.model.JobProperty;
 import org.kohsuke.stapler.QueryParameter;
 import java.net.URL;
+
 /**
  * Code for the build page.
  */
-
 public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable {
     public String serverURL = DescriptorImpl.APPLITOOLS_DEFAULT_URL;
 

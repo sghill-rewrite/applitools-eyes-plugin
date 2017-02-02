@@ -5,7 +5,7 @@ import hudson.model.BuildListener;
 import java.util.Map;
 
 /**
- * Created by addihorowitz on 8/28/16.
+ * Utility class for environment variables.
  */
 public class ApplitoolsEnvironmentUtil {
 

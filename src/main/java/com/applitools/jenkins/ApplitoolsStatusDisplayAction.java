@@ -9,6 +9,10 @@ import java.util.logging.Logger;
 
 import hudson.model.JobProperty;
 
+
+/**
+ * Encapsulates the Applitools' status display action.
+ */
 public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDisplayAction {
     private static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmss";
     private final AbstractBuild<?, ?> build;
