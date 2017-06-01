@@ -16,9 +16,8 @@ import hudson.model.JobProperty;
 import org.kohsuke.stapler.QueryParameter;
 import java.net.URL;
 /**
- * Created by addihorowitz on 8/28/16.
+ * Code for the build page.
  */
-
 public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable {
     public String serverURL = DescriptorImpl.APPLITOOLS_DEFAULT_URL;
 
@@ -44,56 +43,20 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
             @Override
             public void buildEnvVars(Map<String, String> env) {
-                buildEnvVariablesForExternalUsage(env, build, listener);
+                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, serverURL);
             }
         };
     }
 
-    private void runPreBuildActions(final AbstractBuild build, final BuildListener listener) throws IOException, InterruptedException
+    private void runPreBuildActions(final Run build, final BuildListener listener) throws IOException, InterruptedException
     {
         listener.getLogger().println("Starting Applitools Eyes pre-build (server URL is '" + this.serverURL + "')");
 
-        updateProjectProperties(build);
-        addApplitoolsActionToBuild(build);
-        build.save();
+        ApplitoolsCommon.integrateWithApplitools(build, serverURL);
 
         listener.getLogger().println("Finished Applitools Eyes pre-build");
     }
 
-    private void buildEnvVariablesForExternalUsage(Map<String, String> env, final AbstractBuild build, final BuildListener listener)
-    {
-        String batchId = ApplitoolsStatusDisplayAction.generateBatchId(build.getProject().getDisplayName(), build.getNumber(), build.getTimestamp());
-        ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchId);
-    }
-
-    private void updateProjectProperties(final AbstractBuild build) throws IOException
-    {
-        boolean found = false;
-        for (Object property:build.getProject().getAllProperties())
-        {
-            if (property instanceof ApplitoolsProjectConfigProperty)
-            {
-                ((ApplitoolsProjectConfigProperty)property).setServerURL(this.serverURL);
-                found = true;
-                break;
-            }
-        }
-        if (!found)
-        {
-            JobProperty jp = new ApplitoolsProjectConfigProperty(this.serverURL);
-            build.getProject().addProperty(jp);
-        }
-        build.getProject().save();
-    }
-
-    private void addApplitoolsActionToBuild(final AbstractBuild build)
-    {
-        ApplitoolsStatusDisplayAction buildAction = build.getAction(ApplitoolsStatusDisplayAction.class);
-        if (buildAction == null) {
-            buildAction = new ApplitoolsStatusDisplayAction(build);
-            build.addAction(buildAction);
-        }
-    }
 
     @Extension
     public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
@@ -109,8 +72,9 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
         protected static boolean validURL(String url)
         {
+            // Just making sure the URL is valid.
             try {
-                URL serverURL = new URL(url);
+                new URL(url);
             } catch (Exception ex) {
                 return false;
             }
