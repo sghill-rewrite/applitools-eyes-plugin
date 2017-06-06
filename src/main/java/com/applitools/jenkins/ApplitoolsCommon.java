@@ -13,7 +13,7 @@ import java.util.Map;
  */
 public class ApplitoolsCommon {
 
-    public static String APPLITOOLS_DEFAULT_URL = "https://eyes.applitools.com";
+    public final static String APPLITOOLS_DEFAULT_URL = "https://eyes.applitools.com";
 
     public static void integrateWithApplitools(Run run, String serverURL
     ) throws IOException

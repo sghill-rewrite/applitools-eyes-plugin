@@ -4,7 +4,7 @@ import java.io.Serializable;
  * Created by addihorowitz on 5/20/17.
  */
 public class ApplitoolsEnv implements Serializable{
-    public static String serverURL = ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
+    public String serverURL = ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
 
     public String getServerURL() {
         return serverURL;
