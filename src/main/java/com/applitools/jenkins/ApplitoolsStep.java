@@ -31,7 +31,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
     public String getServerURL() {
         if (serverURL != null && !serverURL.isEmpty())
             return serverURL;
-        return DescriptorImpl.APPLITOOLS_DEFAULT_URL;
+        return ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
     }
 
     public static class ApplitoolsStepExecution extends AbstractStepExecutionImpl {
@@ -94,7 +94,6 @@ public class ApplitoolsStep extends AbstractStepImpl {
 
     @Extension
     public static final class DescriptorImpl extends AbstractStepDescriptorImpl {
-        public static final String APPLITOOLS_DEFAULT_URL = "https://eyes.applitools.com";
         public DescriptorImpl() {
             super(ApplitoolsStepExecution.class);
         }

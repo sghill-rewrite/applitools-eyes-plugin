@@ -13,6 +13,8 @@ import java.util.Map;
  */
 public class ApplitoolsCommon {
 
+    public static String APPLITOOLS_DEFAULT_URL = "https://eyes.applitools.com";
+
     public static void integrateWithApplitools(Run run, String serverURL
     ) throws IOException
     {
@@ -52,8 +54,9 @@ public class ApplitoolsCommon {
 
     public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run build, final TaskListener listener, String serverURL)
     {
-        String batchId = ApplitoolsStatusDisplayAction.generateBatchId(build.getDisplayName(), build.getNumber(), build.getTimestamp());
-        String batchName = build.getDisplayName();
+        String projectName = build.getParent().getDisplayName();
+        String batchId = ApplitoolsStatusDisplayAction.generateBatchId(projectName, build.getNumber(), build.getTimestamp());
+        String batchName = projectName;
         ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId);
     }
 

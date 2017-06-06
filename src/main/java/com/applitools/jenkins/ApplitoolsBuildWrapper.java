@@ -19,7 +19,7 @@ import java.net.URL;
  * Code for the build page.
  */
 public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable {
-    public String serverURL = DescriptorImpl.APPLITOOLS_DEFAULT_URL;
+    public String serverURL = ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
 
     @DataBoundConstructor
     public ApplitoolsBuildWrapper(String serverURL) {
@@ -30,7 +30,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
                 this.serverURL = serverURL.trim();
             }
         } else {
-            this.serverURL = DescriptorImpl.APPLITOOLS_DEFAULT_URL;
+            this.serverURL = ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
         }
     }
 
@@ -60,7 +60,6 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
     @Extension
     public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
-        public static final String APPLITOOLS_DEFAULT_URL = "https://eyes.applitools.com";
         public DescriptorImpl() {
             load();
         }
