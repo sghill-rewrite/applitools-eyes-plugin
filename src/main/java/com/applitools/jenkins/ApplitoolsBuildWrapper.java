@@ -15,6 +15,7 @@ import hudson.util.FormValidation;
 import hudson.model.JobProperty;
 import org.kohsuke.stapler.QueryParameter;
 import java.net.URL;
+
 /**
  * Code for the build page.
  */
@@ -56,7 +57,6 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
         listener.getLogger().println("Finished Applitools Eyes pre-build");
     }
-
 
     @Extension
     public static final class DescriptorImpl extends Descriptor<BuildWrapper> {

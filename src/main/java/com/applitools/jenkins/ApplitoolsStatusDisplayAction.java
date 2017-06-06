@@ -1,8 +1,5 @@
 package com.applitools.jenkins;
 
-import hudson.Util;
-import hudson.model.Action;
-import hudson.model.Job;
 import hudson.model.Run;
 import java.io.StringWriter;
 import java.io.PrintWriter;
@@ -20,7 +17,7 @@ import org.jenkinsci.plugins.workflow.graph.FlowNode;
 /**
  * Encapsulates the Applitools' status display action.
  */
-public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDisplayAction{
+public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDisplayAction {
     private static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmss";
     private String projectName;
     private int buildNumber;
