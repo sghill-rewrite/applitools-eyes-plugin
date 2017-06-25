@@ -1,6 +1,7 @@
 package com.applitools.jenkins;
 
 import hudson.model.BuildListener;
+import hudson.model.TaskListener;
 
 import java.util.Map;
 
@@ -9,7 +10,7 @@ import java.util.Map;
  */
 public class ApplitoolsEnvironmentUtil {
 
-    public static void outputVariables(final BuildListener listener, Map<String, String> env, String serverURL, String batchName, String batchId) {
+    public static void outputVariables(final TaskListener listener, Map<String, String> env, String serverURL, String batchName, String batchId) {
         final String APPLITOOLS_BATCH_NAME = "BATCH_NAME";
         final String APPLITOOLS_BATCH_ID = "BATCH_ID";
         final String APPLITOOLS_PROJECT_SERVER_URL = "PROJECT_SERVER_URL";
@@ -28,7 +29,7 @@ public class ApplitoolsEnvironmentUtil {
         }
     }
 
-    public static void outputEnvironmentVariable(final BuildListener listener, Map<String, String> env, String key, String value, boolean overwrite) {
+    public static void outputEnvironmentVariable(final TaskListener listener, Map<String, String> env, String key, String value, boolean overwrite) {
         String prefix = "APPLITOOLS_";
 
         if (env.get(key) == null || overwrite) {
@@ -37,4 +38,5 @@ public class ApplitoolsEnvironmentUtil {
             listener.getLogger().println(keyName + " = '" + value + "'");
         }
     }
+
 }

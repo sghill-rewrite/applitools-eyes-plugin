@@ -6,10 +6,12 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.Job;
 
+import java.io.Serializable;
+
 /**
  * Encapsulates Applitools plugin configuration.
  */
-public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject<?, ?>> {
+public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject<?, ?>> implements Serializable{
     private String serverURL;
 
     public ApplitoolsProjectConfigProperty(String serverURL) {

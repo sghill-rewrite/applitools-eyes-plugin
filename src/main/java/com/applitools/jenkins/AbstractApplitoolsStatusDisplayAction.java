@@ -1,6 +1,5 @@
 package com.applitools.jenkins;
 
-import hudson.model.AbstractBuild;
 import hudson.model.Action;
 
 /**
@@ -21,6 +20,4 @@ public abstract class AbstractApplitoolsStatusDisplayAction implements Action {
     public String getUrlName() {
         return null;
     }
-
-    public abstract AbstractBuild<?, ?> getBuild();
 }
