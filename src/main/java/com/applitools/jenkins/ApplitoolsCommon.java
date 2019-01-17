@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 
 /**
- * Created by addihorowitz on 6/1/17.
+ * Common methods to be used other parts of the plugin
  */
 public class ApplitoolsCommon {
 
