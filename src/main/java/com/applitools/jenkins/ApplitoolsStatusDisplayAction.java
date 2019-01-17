@@ -27,7 +27,7 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
     private static final Logger logger = Logger.getLogger(ApplitoolsStatusDisplayAction.class.getName());
 
     public ApplitoolsStatusDisplayAction(Run build) {
-        this.projectName = build.getParent().getName();
+        this.projectName = build.getParent().getDisplayName();
         this.buildNumber = build.getNumber();
         this.buildTimestamp = build.getTimestamp();
         this.serverURL = null;
