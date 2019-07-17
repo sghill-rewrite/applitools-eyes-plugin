@@ -10,10 +10,11 @@ import java.util.Map;
  */
 public class ApplitoolsEnvironmentUtil {
 
-    public static void outputVariables(final TaskListener listener, Map<String, String> env, String serverURL, String batchName, String batchId) {
+    public static void outputVariables(final TaskListener listener, Map<String, String> env, String serverURL, String batchName, String batchId, String projectName) {
         final String APPLITOOLS_BATCH_NAME = "BATCH_NAME";
         final String APPLITOOLS_BATCH_ID = "BATCH_ID";
         final String APPLITOOLS_PROJECT_SERVER_URL = "PROJECT_SERVER_URL";
+        final String APPLITOOLS_SEQUENCE_NAME = "SEQUENCE_NAME";
 
         listener.getLogger().println("Creating Applitools environment variables:");
 
@@ -26,6 +27,10 @@ public class ApplitoolsEnvironmentUtil {
 
         if (batchName != null && !batchName.isEmpty()) {
             outputEnvironmentVariable(listener, env, APPLITOOLS_BATCH_NAME, batchName, true);
+        }
+
+        if (projectName != null) {
+            outputEnvironmentVariable(listener, env, APPLITOOLS_SEQUENCE_NAME, projectName, true);
         }
     }
 

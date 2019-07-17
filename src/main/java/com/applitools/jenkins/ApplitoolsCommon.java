@@ -57,7 +57,7 @@ public class ApplitoolsCommon {
         String projectName = build.getParent().getDisplayName();
         String batchId = ApplitoolsStatusDisplayAction.generateBatchId(projectName, build.getNumber(), build.getTimestamp());
         String batchName = projectName;
-        ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId);
+        ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId, projectName);
     }
 
 
