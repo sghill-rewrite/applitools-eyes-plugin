@@ -8,12 +8,12 @@ import javaposse.jobdsl.plugin.DslExtensionMethod;
 @Extension(optional = true)
 public class ApplitoolsJobDsl extends ContextExtensionPoint {
     @DslExtensionMethod(context = WrapperContext.class)
-    public Object Applitools(String serverUrl) {
+    public Object applitools(String serverUrl) {
         return new ApplitoolsBuildWrapper(serverUrl);
     }
 
     @DslExtensionMethod(context = WrapperContext.class)
-    public Object Applitools() {
+    public Object applitools() {
         return new ApplitoolsBuildWrapper(ApplitoolsCommon.APPLITOOLS_DEFAULT_URL);
     }
 
