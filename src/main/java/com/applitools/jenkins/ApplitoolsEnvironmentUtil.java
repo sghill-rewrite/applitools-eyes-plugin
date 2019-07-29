@@ -14,7 +14,7 @@ public class ApplitoolsEnvironmentUtil {
         final String APPLITOOLS_BATCH_NAME = "BATCH_NAME";
         final String APPLITOOLS_BATCH_ID = "BATCH_ID";
         final String APPLITOOLS_PROJECT_SERVER_URL = "PROJECT_SERVER_URL";
-        final String APPLITOOLS_SEQUENCE_NAME = "SEQUENCE_NAME";
+        final String APPLITOOLS_SEQUENCE_NAME = "BATCH_SEQUENCE";
 
         listener.getLogger().println("Creating Applitools environment variables:");
 
