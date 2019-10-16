@@ -14,15 +14,16 @@ import java.util.Map;
 public class ApplitoolsCommon {
 
     public final static String APPLITOOLS_DEFAULT_URL = "https://eyes.applitools.com";
+    public final static boolean NOTIFY_BY_COMPLETION = true;
 
-    public static void integrateWithApplitools(Run run, String serverURL
+    public static void integrateWithApplitools(Run run, String serverURL, boolean notifyByCompletion
     ) throws IOException
     {
-        updateProjectProperties(run, serverURL);
+        updateProjectProperties(run, serverURL, notifyByCompletion);
         addApplitoolsActionToBuild(run);
         run.save();
     }
-    private static void updateProjectProperties(Run run, String serverURL
+    private static void updateProjectProperties(Run run, String serverURL, boolean notifyByCompletion
                                                ) throws IOException
     {
         boolean found = false;
@@ -31,13 +32,14 @@ public class ApplitoolsCommon {
             if (property instanceof ApplitoolsProjectConfigProperty)
             {
                 ((ApplitoolsProjectConfigProperty)property).setServerURL(serverURL);
+                ((ApplitoolsProjectConfigProperty)property).setNotifyByCompletion(notifyByCompletion);
                 found = true;
                 break;
             }
         }
         if (!found)
         {
-            JobProperty jp = new ApplitoolsProjectConfigProperty(serverURL);
+            JobProperty jp = new ApplitoolsProjectConfigProperty(serverURL, notifyByCompletion);
             run.getParent().addProperty(jp);
         }
         run.getParent().save();

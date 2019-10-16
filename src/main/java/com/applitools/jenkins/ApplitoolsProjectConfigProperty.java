@@ -13,9 +13,11 @@ import java.io.Serializable;
  */
 public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject<?, ?>> implements Serializable{
     private String serverURL;
+    private boolean notifyByCompletion = true;
 
-    public ApplitoolsProjectConfigProperty(String serverURL) {
+    public ApplitoolsProjectConfigProperty(String serverURL, boolean notifyByCompletion) {
         this.serverURL = serverURL;
+        this.notifyByCompletion = notifyByCompletion;
     }
 
     public String getServerURL()
@@ -27,6 +29,10 @@ public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject
     {
         this.serverURL = serverURL;
     }
+
+    public boolean getNotifyByCompletion() { return this.notifyByCompletion; }
+
+    public void setNotifyByCompletion(boolean value) { this.notifyByCompletion = value; }
 
     @Override
     public JobPropertyDescriptor getDescriptor() {

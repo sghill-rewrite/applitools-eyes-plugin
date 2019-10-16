@@ -15,8 +15,12 @@ public class ApplitoolsEnvironmentUtil {
         final String APPLITOOLS_BATCH_ID = "BATCH_ID";
         final String APPLITOOLS_PROJECT_SERVER_URL = "PROJECT_SERVER_URL";
         final String APPLITOOLS_BATCH_SEQUENCE = "BATCH_SEQUENCE";
+        final String APPLITOOLS_DONT_CLOSE_BATCHES = "DONT_CLOSE_BATCHES";
+        final String TRUE_VALUE = "true";
 
         listener.getLogger().println("Creating Applitools environment variables:");
+
+        outputEnvironmentVariable(listener, env, APPLITOOLS_DONT_CLOSE_BATCHES, TRUE_VALUE, true);
 
         if (serverURL != null && !serverURL.isEmpty()) {
             outputEnvironmentVariable(listener, env, APPLITOOLS_PROJECT_SERVER_URL, serverURL, true);

@@ -4,5 +4,8 @@
     <f:entry field="serverURL" title="ServerURL">
         <f:textbox default="${descriptor.APPLITOOLS_DEFAULT_URL}"/>
     </f:entry>
+    <f:entry title="${%notifyByCompletion.text.text}" field="notifyByCompletion">
+        <f:checkbox/>
+    </f:entry>
 </j:jelly>
 

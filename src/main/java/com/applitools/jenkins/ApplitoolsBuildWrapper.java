@@ -5,6 +5,7 @@ import hudson.Launcher;
 import hudson.model.*;
 import hudson.tasks.BuildWrapper;
 import net.sf.json.JSONObject;
+import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
@@ -14,16 +15,21 @@ import java.util.*;
 import hudson.util.FormValidation;
 import hudson.model.JobProperty;
 import org.kohsuke.stapler.QueryParameter;
+import org.apache.commons.httpclient.*;
+
 import java.net.URL;
 
 /**
  * Code for the build page.
  */
 public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable {
-    public String serverURL = ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
+    public final static String BATCH_NOTIFICATION_PATH = "/api/sessions/batches/%s/close/bypointerid";
+    public String serverURL;
+    public boolean notifyByCompletion;
 
     @DataBoundConstructor
-    public ApplitoolsBuildWrapper(String serverURL) {
+    public ApplitoolsBuildWrapper(String serverURL, boolean notifyByCompletion) {
+        this.notifyByCompletion = notifyByCompletion;
         if (serverURL != null && !serverURL.isEmpty())
         {
             if (DescriptorImpl.validURL(serverURL))
@@ -41,6 +47,26 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
         runPreBuildActions(build, listener);
 
         return new Environment() {
+            @Override
+            public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+                listener.getLogger().println("TEAR DOWN!!!");
+                if (notifyByCompletion) {
+                    String batchId = ApplitoolsStatusDisplayAction.generateBatchId(build.getParent().getDisplayName(), build.getNumber(), build.getTimestamp());
+                    HttpClient httpClient = new HttpClient();
+                    URI targetUrl = new URI(serverURL, false);
+                    targetUrl.setPath(String.format(BATCH_NOTIFICATION_PATH, batchId));
+
+                    DeleteMethod deleteRequest = new DeleteMethod(targetUrl.toString());
+                    try {
+                        listener.getLogger().println(String.format("Batch notification called with %s", batchId));
+                        int statusCode = httpClient.executeMethod(deleteRequest);
+                        listener.getLogger().println("Delete batch is done with " + Integer.toString(statusCode) + " status");
+                    } finally {
+                        deleteRequest.releaseConnection();
+                    }
+                }
+                return true;
+            }
 
             @Override
             public void buildEnvVars(Map<String, String> env) {
@@ -53,7 +79,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     {
         listener.getLogger().println("Starting Applitools Eyes pre-build (server URL is '" + this.serverURL + "')");
 
-        ApplitoolsCommon.integrateWithApplitools(build, serverURL);
+        ApplitoolsCommon.integrateWithApplitools(build, serverURL, notifyByCompletion);
 
         listener.getLogger().println("Finished Applitools Eyes pre-build");
     }
@@ -101,7 +127,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
         @Override
         public BuildWrapper newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
-            return new ApplitoolsBuildWrapper(formData.getString("serverURL"));
+            return new ApplitoolsBuildWrapper(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"));
         }
     }
 }

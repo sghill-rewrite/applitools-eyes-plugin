@@ -20,10 +20,12 @@ import java.util.Set;
  */
 public class ApplitoolsStep extends AbstractStepImpl {
     private String serverURL;
+    private boolean notifyByCompletion;
 
     @DataBoundConstructor
-    public ApplitoolsStep(String serverURL)
+    public ApplitoolsStep(String serverURL, boolean notifyByCompletion)
     {
+        this.notifyByCompletion = notifyByCompletion;
         if (serverURL != null && !serverURL.isEmpty())
             this.serverURL = serverURL;
     }
@@ -33,6 +35,8 @@ public class ApplitoolsStep extends AbstractStepImpl {
             return serverURL;
         return ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
     }
+
+    public boolean getNotifyByCompletion() { return this.notifyByCompletion; }
 
     public static class ApplitoolsStepExecution extends AbstractStepExecutionImpl {
         private static final long serialVersionUID = 1;
@@ -58,7 +62,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
                         @Override
                         public void onStart(StepContext context) {
                             try {
-                                ApplitoolsCommon.integrateWithApplitools(run, step.getServerURL());
+                                ApplitoolsCommon.integrateWithApplitools(run, step.getServerURL(), step.getNotifyByCompletion());
                             } catch (Exception ex) {
                                 listener.getLogger().println("Failed to update properties");
                             }
@@ -118,7 +122,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
 
         @Override
         public ApplitoolsStep newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
-            return new ApplitoolsStep(formData.getString("serverURL"));
+            return new ApplitoolsStep(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"));
         }
 
     }
