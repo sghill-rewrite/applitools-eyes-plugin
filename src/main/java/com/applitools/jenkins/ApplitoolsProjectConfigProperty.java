@@ -13,11 +13,21 @@ import java.io.Serializable;
  */
 public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject<?, ?>> implements Serializable{
     private String serverURL;
-    private boolean notifyByCompletion = true;
+    private boolean notifyByCompletion;
+    private String applitoolsApiKey;
 
-    public ApplitoolsProjectConfigProperty(String serverURL, boolean notifyByCompletion) {
+    public ApplitoolsProjectConfigProperty(String serverURL, boolean notifyByCompletion, String applitoolsApiKey) {
         this.serverURL = serverURL;
         this.notifyByCompletion = notifyByCompletion;
+        this.applitoolsApiKey = applitoolsApiKey;
+    }
+
+    public String getApiAccess() {
+        return applitoolsApiKey;
+    }
+
+    public void setApiAccess(String value) {
+        this.applitoolsApiKey = value;
     }
 
     public String getServerURL()

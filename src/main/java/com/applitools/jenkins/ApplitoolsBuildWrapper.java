@@ -26,9 +26,11 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     public final static String BATCH_NOTIFICATION_PATH = "/api/sessions/batches/%s/close/bypointerid";
     public String serverURL;
     public boolean notifyByCompletion;
+    public String apiAccess;
 
     @DataBoundConstructor
-    public ApplitoolsBuildWrapper(String serverURL, boolean notifyByCompletion) {
+    public ApplitoolsBuildWrapper(String serverURL, boolean notifyByCompletion, String applitoolsApiKey) {
+        this.apiAccess = applitoolsApiKey;
         this.notifyByCompletion = notifyByCompletion;
         if (serverURL != null && !serverURL.isEmpty())
         {
@@ -49,12 +51,12 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
         return new Environment() {
             @Override
             public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
-                listener.getLogger().println("TEAR DOWN!!!");
-                if (notifyByCompletion) {
+                if (notifyByCompletion && apiAccess != null && !apiAccess.isEmpty()) {
                     String batchId = ApplitoolsStatusDisplayAction.generateBatchId(build.getParent().getDisplayName(), build.getNumber(), build.getTimestamp());
                     HttpClient httpClient = new HttpClient();
                     URI targetUrl = new URI(serverURL, false);
                     targetUrl.setPath(String.format(BATCH_NOTIFICATION_PATH, batchId));
+                    targetUrl.setQuery("apiKey=" + apiAccess);
 
                     DeleteMethod deleteRequest = new DeleteMethod(targetUrl.toString());
                     try {
@@ -70,22 +72,25 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
             @Override
             public void buildEnvVars(Map<String, String> env) {
-                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, serverURL);
+                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, serverURL, apiAccess);
             }
         };
     }
 
     private void runPreBuildActions(final Run build, final BuildListener listener) throws IOException, InterruptedException
     {
-        listener.getLogger().println("Starting Applitools Eyes pre-build (server URL is '" + this.serverURL + "')");
+        listener.getLogger().println("Starting Applitools Eyes pre-build (server URL is '" + this.serverURL + "') apiKey is " + this.apiAccess);
 
-        ApplitoolsCommon.integrateWithApplitools(build, serverURL, notifyByCompletion);
+        ApplitoolsCommon.integrateWithApplitools(build, this.serverURL, this.notifyByCompletion, this.apiAccess);
 
         listener.getLogger().println("Finished Applitools Eyes pre-build");
     }
 
     @Extension
     public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
+        public static String APPLITOOLS_DEFAULT_URL="https://eyes.applitools.com";
+        public static boolean NOTIFY_BY_COMPLETION=true;
+
         public DescriptorImpl() {
             load();
         }
@@ -127,7 +132,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
         @Override
         public BuildWrapper newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
-            return new ApplitoolsBuildWrapper(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"));
+            return new ApplitoolsBuildWrapper(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"), formData.getString("apiAccess"));
         }
     }
 }
