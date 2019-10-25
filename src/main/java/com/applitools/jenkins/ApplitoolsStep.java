@@ -76,12 +76,23 @@ public class ApplitoolsStep extends AbstractStepImpl {
 
                         @Override
                         public void onSuccess(StepContext context, Object result) {
+                            closeBatch();
                             context.onSuccess(result);
                         }
 
                         @Override
                         public void onFailure(StepContext context, Throwable t) {
+                            closeBatch();
                             context.onFailure(t);
+                        }
+
+                        public void closeBatch() {
+                            try {
+                                ApplitoolsCommon.closeBatch(run, listener, step.getServerURL(), step.getNotifyByCompletion(), step.getApiAccess());
+                            }
+                            catch (IOException ex) {
+                              listener.getLogger().println("Error closing batch: " + ex.getMessage());
+                            }
                         }
 
                     })
@@ -98,6 +109,8 @@ public class ApplitoolsStep extends AbstractStepImpl {
             }
 
         }
+
+
 
     }
 

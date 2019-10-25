@@ -51,22 +51,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
         return new Environment() {
             @Override
             public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
-                if (notifyByCompletion && apiAccess != null && !apiAccess.isEmpty()) {
-                    String batchId = ApplitoolsStatusDisplayAction.generateBatchId(build.getParent().getDisplayName(), build.getNumber(), build.getTimestamp());
-                    HttpClient httpClient = new HttpClient();
-                    URI targetUrl = new URI(serverURL, false);
-                    targetUrl.setPath(String.format(BATCH_NOTIFICATION_PATH, batchId));
-                    targetUrl.setQuery("apiKey=" + apiAccess);
-
-                    DeleteMethod deleteRequest = new DeleteMethod(targetUrl.toString());
-                    try {
-                        listener.getLogger().println(String.format("Batch notification called with %s", batchId));
-                        int statusCode = httpClient.executeMethod(deleteRequest);
-                        listener.getLogger().println("Delete batch is done with " + Integer.toString(statusCode) + " status");
-                    } finally {
-                        deleteRequest.releaseConnection();
-                    }
-                }
+                ApplitoolsCommon.closeBatch(build, listener, serverURL, notifyByCompletion, apiAccess);
                 return true;
             }
 
