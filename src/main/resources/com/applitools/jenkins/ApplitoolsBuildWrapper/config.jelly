@@ -4,7 +4,7 @@
     <f:entry title="${%url.text.text}" field="serverURL">
         <f:textbox default="${descriptor.APPLITOOLS_DEFAULT_URL}"/>
     </f:entry>
-    <f:entry title="${%applitoolsApiKey.text.text}" field="apiAccess">
+    <f:entry title="${%applitoolsApiKey.text.text}" field="applitoolsApiKey">
         <f:textbox />
     </f:entry>
     <f:entry title="${%notifyByCompletion.text.text}" field="notifyByCompletion">

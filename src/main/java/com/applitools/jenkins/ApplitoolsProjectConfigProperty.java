@@ -22,11 +22,11 @@ public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject
         this.applitoolsApiKey = applitoolsApiKey;
     }
 
-    public String getApiAccess() {
+    public String getApplitoolsApiKey() {
         return applitoolsApiKey;
     }
 
-    public void setApiAccess(String value) {
+    public void setApplitoolsApiKey(String value) {
         this.applitoolsApiKey = value;
     }
 

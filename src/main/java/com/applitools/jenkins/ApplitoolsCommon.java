@@ -1,6 +1,5 @@
 package com.applitools.jenkins;
 
-import hudson.model.BuildListener;
 import hudson.model.JobProperty;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -38,7 +37,7 @@ public class ApplitoolsCommon {
             {
                 ((ApplitoolsProjectConfigProperty)property).setServerURL(serverURL);
                 ((ApplitoolsProjectConfigProperty)property).setNotifyByCompletion(notifyByCompletion);
-                ((ApplitoolsProjectConfigProperty)property).setApiAccess(applitoolsApiKey);
+                ((ApplitoolsProjectConfigProperty)property).setApplitoolsApiKey(applitoolsApiKey);
                 found = true;
                 break;
             }
@@ -60,21 +59,21 @@ public class ApplitoolsCommon {
         }
     }
 
-    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run build, final TaskListener listener, String serverURL, String apiAccess)
+    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run build, final TaskListener listener, String serverURL, String applitoolsApiKey)
     {
         String projectName = build.getParent().getDisplayName();
         String batchId = ApplitoolsStatusDisplayAction.generateBatchId(projectName, build.getNumber(), build.getTimestamp());
         String batchName = projectName;
-        ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId, projectName, apiAccess);
+        ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId, projectName, applitoolsApiKey);
     }
 
-    public static void closeBatch(Run run, TaskListener listener, String serverURL, boolean notifyByCompletion, String apiAccess) throws IOException {
-        if (notifyByCompletion && apiAccess != null && !apiAccess.isEmpty()) {
+    public static void closeBatch(Run run, TaskListener listener, String serverURL, boolean notifyByCompletion, String applitoolsApiKey) throws IOException {
+        if (notifyByCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
             String batchId = ApplitoolsStatusDisplayAction.generateBatchId(run.getParent().getDisplayName(), run.getNumber(), run.getTimestamp());
             HttpClient httpClient = new HttpClient();
             URI targetUrl = new URI(serverURL, false);
             targetUrl.setPath(String.format(BATCH_NOTIFICATION_PATH, batchId));
-            targetUrl.setQuery("apiKey=" + apiAccess);
+            targetUrl.setQuery("apiKey=" + applitoolsApiKey);
 
             DeleteMethod deleteRequest = new DeleteMethod(targetUrl.toString());
             try {

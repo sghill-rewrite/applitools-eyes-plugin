@@ -21,13 +21,13 @@ import java.util.Set;
 public class ApplitoolsStep extends AbstractStepImpl {
     private String serverURL;
     private boolean notifyByCompletion;
-    private String apiAccess;
+    private String applitoolsApiKey;
 
     @DataBoundConstructor
-    public ApplitoolsStep(String serverURL, boolean notifyByCompletion, String apiAccess)
+    public ApplitoolsStep(String serverURL, boolean notifyByCompletion, String applitoolsApiKey)
     {
         this.notifyByCompletion = notifyByCompletion;
-        this.apiAccess = apiAccess;
+        this.applitoolsApiKey = applitoolsApiKey;
         if (serverURL != null && !serverURL.isEmpty())
             this.serverURL = serverURL;
     }
@@ -38,8 +38,8 @@ public class ApplitoolsStep extends AbstractStepImpl {
         return ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
     }
 
-    public String getApiAccess() {
-        return this.apiAccess;
+    public String getApplitoolsApiKey() {
+        return this.applitoolsApiKey;
     }
 
     public boolean getNotifyByCompletion() { return this.notifyByCompletion; }
@@ -60,7 +60,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
                 throw new Exception("should be top level job " + job);
             }
             HashMap<String,String> overrides = new HashMap<String,String>();
-            ApplitoolsCommon.buildEnvVariablesForExternalUsage(overrides, run, listener, step.getServerURL(), step.getApiAccess());
+            ApplitoolsCommon.buildEnvVariablesForExternalUsage(overrides, run, listener, step.getServerURL(), step.getApplitoolsApiKey());
 
             body = getContext().newBodyInvoker()
                     .withContext(EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), new ApplitoolsEnvironmentExpander(overrides)))
@@ -68,7 +68,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
                         @Override
                         public void onStart(StepContext context) {
                             try {
-                                ApplitoolsCommon.integrateWithApplitools(run, step.getServerURL(), step.getNotifyByCompletion(), step.getApiAccess());
+                                ApplitoolsCommon.integrateWithApplitools(run, step.getServerURL(), step.getNotifyByCompletion(), step.getApplitoolsApiKey());
                             } catch (Exception ex) {
                                 listener.getLogger().println("Failed to update properties");
                             }
@@ -88,7 +88,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
 
                         public void closeBatch() {
                             try {
-                                ApplitoolsCommon.closeBatch(run, listener, step.getServerURL(), step.getNotifyByCompletion(), step.getApiAccess());
+                                ApplitoolsCommon.closeBatch(run, listener, step.getServerURL(), step.getNotifyByCompletion(), step.getApplitoolsApiKey());
                             }
                             catch (IOException ex) {
                               listener.getLogger().println("Error closing batch: " + ex.getMessage());
@@ -141,7 +141,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
 
         @Override
         public ApplitoolsStep newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
-            return new ApplitoolsStep(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"), formData.getString("apiAccess"));
+            return new ApplitoolsStep(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"), formData.getString("applitoolsApiKey"));
         }
 
     }

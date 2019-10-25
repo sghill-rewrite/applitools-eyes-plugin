@@ -10,7 +10,7 @@ import java.util.Map;
  */
 public class ApplitoolsEnvironmentUtil {
 
-    public static void outputVariables(final TaskListener listener, Map<String, String> env, String serverURL, String batchName, String batchId, String projectName, String apiAccess) {
+    public static void outputVariables(final TaskListener listener, Map<String, String> env, String serverURL, String batchName, String batchId, String projectName, String applitoolsApiKey) {
         final String APPLITOOLS_BATCH_NAME = "BATCH_NAME";
         final String APPLITOOLS_BATCH_ID = "BATCH_ID";
         final String APPLITOOLS_PROJECT_SERVER_URL = "SERVER_URL";
@@ -38,8 +38,8 @@ public class ApplitoolsEnvironmentUtil {
             outputEnvironmentVariable(listener, env, APPLITOOLS_BATCH_SEQUENCE, projectName, true);
         }
 
-        if (apiAccess != null && !apiAccess.isEmpty()) {
-            outputEnvironmentVariable(listener, env, APPLITOOLS_API_KEY, apiAccess, true);
+        if (applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
+            outputEnvironmentVariable(listener, env, APPLITOOLS_API_KEY, applitoolsApiKey, true);
         }
     }
 
