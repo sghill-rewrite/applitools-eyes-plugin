@@ -12,18 +12,23 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import hudson.util.FormValidation;
-import hudson.model.JobProperty;
 import org.kohsuke.stapler.QueryParameter;
+
 import java.net.URL;
 
 /**
  * Code for the build page.
  */
 public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable {
-    public String serverURL = ApplitoolsCommon.APPLITOOLS_DEFAULT_URL;
+    public final static String BATCH_NOTIFICATION_PATH = "/api/sessions/batches/%s/close/bypointerid";
+    public String serverURL;
+    public boolean notifyByCompletion;
+    public String applitoolsApiKey;
 
     @DataBoundConstructor
-    public ApplitoolsBuildWrapper(String serverURL) {
+    public ApplitoolsBuildWrapper(String serverURL, boolean notifyByCompletion, String applitoolsApiKey) {
+        this.applitoolsApiKey = applitoolsApiKey;
+        this.notifyByCompletion = notifyByCompletion;
         if (serverURL != null && !serverURL.isEmpty())
         {
             if (DescriptorImpl.validURL(serverURL))
@@ -41,25 +46,33 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
         runPreBuildActions(build, listener);
 
         return new Environment() {
+            @Override
+            public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
+                ApplitoolsCommon.closeBatch(build, listener, serverURL, notifyByCompletion, applitoolsApiKey);
+                return true;
+            }
 
             @Override
             public void buildEnvVars(Map<String, String> env) {
-                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, serverURL);
+                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, serverURL, applitoolsApiKey);
             }
         };
     }
 
     private void runPreBuildActions(final Run build, final BuildListener listener) throws IOException, InterruptedException
     {
-        listener.getLogger().println("Starting Applitools Eyes pre-build (server URL is '" + this.serverURL + "')");
+        listener.getLogger().println("Starting Applitools Eyes pre-build (server URL is '" + this.serverURL + "') apiKey is " + this.applitoolsApiKey);
 
-        ApplitoolsCommon.integrateWithApplitools(build, serverURL);
+        ApplitoolsCommon.integrateWithApplitools(build, this.serverURL, this.notifyByCompletion, this.applitoolsApiKey);
 
         listener.getLogger().println("Finished Applitools Eyes pre-build");
     }
 
     @Extension
     public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
+        public static String APPLITOOLS_DEFAULT_URL="https://eyes.applitools.com";
+        public static boolean NOTIFY_BY_COMPLETION=true;
+
         public DescriptorImpl() {
             load();
         }
@@ -101,7 +114,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
         @Override
         public BuildWrapper newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
-            return new ApplitoolsBuildWrapper(formData.getString("serverURL"));
+            return new ApplitoolsBuildWrapper(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"), formData.getString("applitoolsApiKey"));
         }
     }
 }
