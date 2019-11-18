@@ -6,3 +6,4 @@ target/
 work/
 *.releaseBackup
 release.properties
+/.java-version
