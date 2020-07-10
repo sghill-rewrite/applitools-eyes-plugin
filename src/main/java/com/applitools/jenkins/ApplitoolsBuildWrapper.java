@@ -31,7 +31,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     public boolean notifyByCompletion;
     public String applitoolsApiKey;
 
-    public static final Map<String, String> ARTIFACT_PATHS = new HashMap();
+    static final Map<String, String> ARTIFACT_PATHS = new HashMap();
 
     static {
         ARTIFACT_PATHS.put(
@@ -82,18 +82,23 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
     public static Map<String, String> getApplitoolsArtifactList(AbstractBuild build, TaskListener listener) {
         Map<String, String> applitoolsArtifacts = new HashMap();
-        VirtualFile rootDir = build.getWorkspace().toVirtualFile();
-        for(Map.Entry<String, String> apath : ARTIFACT_PATHS.entrySet()) {
-            try {
-                InputStream stream = rootDir.child(apath.getValue()).open();
-                String value = IOUtils.toString(stream, StandardCharsets.UTF_8.name()).replaceAll(System.getProperty("line.separator"), "");
-                Matcher m = ApplitoolsCommon.artifactRegexp.matcher(apath.getKey());
-                if (m.find()) {
-                    applitoolsArtifacts.put(m.group(1), value);
+        FilePath workspace = build.getWorkspace();
+        if (workspace != null) {
+            VirtualFile rootDir = workspace.toVirtualFile();
+            for (Map.Entry<String, String> apath : ARTIFACT_PATHS.entrySet()) {
+                try {
+                    InputStream stream = rootDir.child(apath.getValue()).open();
+                    String value = IOUtils.toString(stream, StandardCharsets.UTF_8.name()).replaceAll(System.getProperty("line.separator"), "");
+                    Matcher m = ApplitoolsCommon.artifactRegexp.matcher(apath.getKey());
+                    if (m.find()) {
+                        applitoolsArtifacts.put(m.group(1), value);
+                    }
+                } catch (IOException e) {
+                    listener.getLogger().println(String.format("Custom BATCH_ID is not defined: %s", rootDir.child(apath.getValue())));
                 }
-            } catch (IOException e) {
-                listener.getLogger().println(String.format("Custom BATCH_ID is not defined: %s", rootDir.child(apath.getValue())));
             }
+        } else {
+            listener.getLogger().println("build.getWorkspace() returned null, skipping check for applitools artifacts.");
         }
         return applitoolsArtifacts;
     }

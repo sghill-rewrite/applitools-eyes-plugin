@@ -31,7 +31,7 @@ public class ApplitoolsCommon {
     public final static String BATCH_NOTIFICATION_PATH = "/api/sessions/batches/%s/close/bypointerid";
     public final static String APPLITOOLS_ARTIFACT_FOLDER = ".applitools";
     public final static String APPLITOOLS_ARTIFACT_PREFIX = "APPLITOOLS";
-    public static Pattern artifactRegexp = Pattern.compile(ApplitoolsCommon.APPLITOOLS_ARTIFACT_PREFIX + "_(.*)");
+    public final static Pattern artifactRegexp = Pattern.compile(ApplitoolsCommon.APPLITOOLS_ARTIFACT_PREFIX + "_(.*)");
     private static final Logger logger = Logger.getLogger(ApplitoolsStatusDisplayAction.class.getName());
 
     public static void integrateWithApplitools(Run run, String serverURL, boolean notifyByCompletion, String applitoolsApiKey
