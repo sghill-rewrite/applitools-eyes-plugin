@@ -89,7 +89,7 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
             return null;
         }
 
-        return serverURL + "/app/batchesnoauth/?startInfoBatchId=" + generateBatchId() + "&hideBatchList=true&intercom=false";
+        return serverURL + "/app/batchesnoauth/?startInfoBatchId=" + generateBatchId() + "&hideBatchList=true&intercom=false&agentId=eyes-jenkins-1.13";
     }
 
 //    private void checkApplitoolsArtifacts() {
