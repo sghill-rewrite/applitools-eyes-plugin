@@ -70,7 +70,6 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
             @Override
             public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
                 if (isCustomBatchId) {
-                    listener.getLogger().println(String.format("tearDown save artifact: " + isCustomBatchId));
                     build.pickArtifactManager().archive(build.getWorkspace(), launcher, listener, ARTIFACT_PATHS);
                 }
                 ApplitoolsCommon.closeBatch(build, listener, serverURL, notifyByCompletion, applitoolsApiKey);
