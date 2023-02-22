@@ -53,7 +53,10 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
 
     @Override
     public String getIframeText() {
-        this.applitoolsValuesFromArtifacts = ApplitoolsCommon.checkApplitoolsArtifacts(this.build.getArtifacts(), this.build.getArtifactManager().root());
+        this.applitoolsValuesFromArtifacts = 
+            ApplitoolsCommon.checkApplitoolsArtifacts(
+                this.build.getArtifacts(), 
+                this.build.getArtifactManager().root());
         try{
             String iframeURL = generateIframeURL();
             if (iframeURL == null)
@@ -92,35 +95,15 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
         return serverURL + "/app/batchesnoauth/?startInfoBatchId=" + generateBatchId() + "&hideBatchList=true&intercom=false&agentId=eyes-jenkins-1.13";
     }
 
-//    private void checkApplitoolsArtifacts() {
-//        this.applitoolsValuesFromArtifacts = new HashMap();
-//        ArtifactManager artifactManager = build.getArtifactManager();
-//        List<Run.Artifact> artifactList = build.getArtifacts();
-//        if (artifactList.size() > 0 && artifactManager != null) {
-//            for (Run.Artifact artifact : artifactList) {
-//                String artifactFileName = artifact.getFileName();
-//                Matcher m = artifactRegexp.matcher(artifactFileName);
-//                if (m.find()) {
-//                  String artifactName = m.group(1);
-//                  try {
-//                      InputStream stream = artifactManager.root().child(artifactFileName).open();
-//                      String value = IOUtils.toString(stream, StandardCharsets.UTF_8.name()).replaceAll(System.getProperty("line.separator"), "");
-//                      this.applitoolsValuesFromArtifacts.put(artifactName, value);
-//                  } catch (java.io.IOException e) {
-//                      logger.warning("Could't get artifact " + artifactFileName + "." + e.getMessage());
-//                  }
-//                }
-//            }
-//        }
-//    }
-
     public static String generateBatchId(String projectName, int buildNumber, Calendar buildTimestamp) {
       return generateBatchId(projectName, buildNumber, buildTimestamp, null);
     }
 
-    public static String generateBatchId(String projectName, int buildNumber, Calendar buildTimestamp, Map<String, String> applitoolsValuesFromArtifacts)
+    public static String generateBatchId(String projectName, int buildNumber, Calendar buildTimestamp,
+                                         Map<String, String> applitoolsValuesFromArtifacts)
     {
-        if (applitoolsValuesFromArtifacts != null && applitoolsValuesFromArtifacts.containsKey(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID)) {
+        if (applitoolsValuesFromArtifacts != null &&
+                applitoolsValuesFromArtifacts.containsKey(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID)) {
             return applitoolsValuesFromArtifacts.get(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID);
         } else {
             final String BATCH_ID_PREFIX = "jenkins";
