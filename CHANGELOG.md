@@ -1,4 +1,4 @@
-## [1.15] - 2023-02-27
+## [1.14] - 2023-02-27
 ### Fixed
 - Fixed crash on newer Jenkins versions.
 
