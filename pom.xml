@@ -32,7 +32,7 @@
     <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
     <!-- Recommended version: https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
     <jenkins.version>2.361.4</jenkins.version>
-sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss    <!-- <= 1.71 vulnerable: https://www.jenkins.io/security/advisory/2019-03-06/#SECURITY-1342 -->
+    <!-- <= 1.71 vulnerable: https://www.jenkins.io/security/advisory/2019-03-06/#SECURITY-1342 -->
     <plugins.job-dsl.version>1.72</plugins.job-dsl.version>
   </properties>
 
