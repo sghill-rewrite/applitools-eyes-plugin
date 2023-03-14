@@ -7,6 +7,10 @@
 - Bump JobDSL to `1.72` to rely on non-vulnerable version.
 - Rely on Jenkins core BOM for workflow plugins versions.
 
+## [1.14] - 2023-02-27
+### Fixed
+- Fixed crash on newer Jenkins versions.
+
 ## [1.12] - 2019-11-13
 ### Added
 - Allow setting Batch ID explicitly. 
