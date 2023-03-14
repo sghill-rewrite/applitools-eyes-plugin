@@ -69,12 +69,19 @@
           <version>${plugins.job-dsl.version}</version>
           <optional>true</optional>
         </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.main</groupId>
+      <artifactId>jenkins-test-harness-htmlunit</artifactId>
+      <version>2.18-1</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.5.6</version>
+    </dependency>
   </dependencies>
   <repositories>
-    <repository>
-      <id>m.g.o-public</id>
-      <url>https://repo.jenkins-ci.org/public/</url>
-    </repository>
     <repository>
       <id>repo.jenkins-ci.org</id>
       <url>https://repo.jenkins-ci.org/public/</url>

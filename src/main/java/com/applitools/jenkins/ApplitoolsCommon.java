@@ -1,17 +1,20 @@
 package com.applitools.jenkins;
 
-import hudson.model.Build;
+import hidden.jth.org.apache.http.client.methods.HttpDelete;
+import hidden.jth.org.apache.http.client.methods.HttpUriRequest;
+import hidden.jth.org.apache.http.client.utils.URIBuilder;
+import hidden.jth.org.apache.http.impl.client.HttpClientBuilder;
+import hidden.jth.org.apache.http.client.HttpClient;
 import hudson.model.JobProperty;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import jenkins.util.VirtualFile;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.URI;
-import org.apache.commons.httpclient.methods.DeleteMethod;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -87,19 +90,33 @@ public class ApplitoolsCommon {
 
     public static void closeBatch(Run run, TaskListener listener, String serverURL, boolean notifyByCompletion, String applitoolsApiKey) throws IOException {
         if (notifyByCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
-            String batchId = ApplitoolsStatusDisplayAction.generateBatchId(run.getParent().getDisplayName(), run.getNumber(), run.getTimestamp(), ApplitoolsCommon.checkApplitoolsArtifacts(run.getArtifacts(), run.getArtifactManager().root()));
-            HttpClient httpClient = new HttpClient();
-            URI targetUrl = new URI(serverURL, false);
-            targetUrl.setPath(String.format(BATCH_NOTIFICATION_PATH, batchId));
-            targetUrl.setQuery("apiKey=" + applitoolsApiKey);
-
-            DeleteMethod deleteRequest = new DeleteMethod(targetUrl.toString());
+            String batchId = ApplitoolsStatusDisplayAction.generateBatchId(
+                run.getParent().getDisplayName(),
+                run.getNumber(),
+                run.getTimestamp(),
+                ApplitoolsCommon.checkApplitoolsArtifacts(
+                    run.getArtifacts(),
+                    run.getArtifactManager().root()
+                )
+            );
+            HttpClient httpClient = HttpClientBuilder.create().build();
+            URI targetUrl = null;
             try {
-                listener.getLogger().println(String.format("Batch notification called with %s", batchId));
-                int statusCode = httpClient.executeMethod(deleteRequest);
+                targetUrl = new URIBuilder(serverURL)
+                        .setPath(String.format(BATCH_NOTIFICATION_PATH, batchId))
+                        .addParameter("apiKey", applitoolsApiKey)
+                        .build();
+            } catch (URISyntaxException e) {
+                logger.warning("Couldn't build URI: " + e.getMessage());
+            }
+
+            HttpUriRequest deleteRequest = new HttpDelete(targetUrl);
+            try {
+                listener.getLogger().printf("Batch notification called with %s%n", batchId);
+                int statusCode = httpClient.execute(deleteRequest).getStatusLine().getStatusCode();
                 listener.getLogger().println("Delete batch is done with " + Integer.toString(statusCode) + " status");
             } finally {
-                deleteRequest.releaseConnection();
+                deleteRequest.abort();
             }
 
         }
@@ -107,7 +124,7 @@ public class ApplitoolsCommon {
     }
 
     public static Map<String, String> checkApplitoolsArtifacts(List<Run.Artifact> artifactList, VirtualFile file) {
-        Map<String, String> result = new HashMap();
+        Map<String, String> result = new HashMap<>();
         if (artifactList.size() > 0 && file != null) {
             for (Run.Artifact artifact : artifactList) {
                 String artifactFileName = artifact.getFileName();
@@ -119,7 +136,7 @@ public class ApplitoolsCommon {
                         String value = IOUtils.toString(stream, StandardCharsets.UTF_8.name()).replaceAll(System.getProperty("line.separator"), "");
                         result.put(artifactName, value);
                     } catch (java.io.IOException e) {
-                        logger.warning("Could't get artifact " + artifactFileName + "." + e.getMessage());
+                        logger.warning("Couldn't get artifact " + artifactFileName + "." + e.getMessage());
                     }
                 }
             }
