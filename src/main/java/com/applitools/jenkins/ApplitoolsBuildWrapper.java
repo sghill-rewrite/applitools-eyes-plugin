@@ -31,6 +31,8 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     public boolean notifyByCompletion;
     public String applitoolsApiKey;
 
+    private static boolean isCustomBatchId = false;
+
     static final Map<String, String> ARTIFACT_PATHS = new HashMap();
 
     static {
@@ -67,7 +69,9 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
         return new Environment() {
             @Override
             public boolean tearDown(AbstractBuild build, BuildListener listener) throws IOException, InterruptedException {
-                build.pickArtifactManager().archive(build.getWorkspace(), launcher, listener, ARTIFACT_PATHS);
+                if (isCustomBatchId) {
+                    build.pickArtifactManager().archive(build.getWorkspace(), launcher, listener, ARTIFACT_PATHS);
+                }
                 ApplitoolsCommon.closeBatch(build, listener, serverURL, notifyByCompletion, applitoolsApiKey);
                 return true;
             }
@@ -92,8 +96,10 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
                     Matcher m = ApplitoolsCommon.artifactRegexp.matcher(apath.getKey());
                     if (m.find()) {
                         applitoolsArtifacts.put(m.group(1), value);
+                        isCustomBatchId = true;
                     }
                 } catch (IOException e) {
+                    isCustomBatchId = false;
                     listener.getLogger().println(String.format("Custom BATCH_ID is not defined: %s", rootDir.child(apath.getValue())));
                 }
             }
