@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>2.22</version>
+    <version>4.40</version>
     <relativePath />
   </parent>
   <artifactId>applitools-eyes</artifactId>
@@ -30,11 +30,9 @@
 
   <properties>
     <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
-    <jenkins.version>2.22</jenkins.version>
-    <!-- Java Level to use. Java 7 required when using core >= 1.612 -->
-    <java.level>7</java.level>
-    <plugins.workflow.version>1.15</plugins.workflow.version>
-    <plugins.job-dsl.version>1.52</plugins.job-dsl.version>
+    <jenkins.version>2.303.3</jenkins.version>
+    <!-- <= 1.71 vulnerable: https://www.jenkins.io/security/advisory/2019-03-06/#SECURITY-1342 -->
+    <plugins.job-dsl.version>1.72</plugins.job-dsl.version>
   </properties>
 
   <developers>
@@ -44,17 +42,26 @@
       <email>team@applitools.com</email>
     </developer>
   </developers>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.jenkins.tools.bom</groupId>
+        <artifactId>bom-2.303.x</artifactId>
+        <version>1409.v7659b_c072f18</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
       <dependency>
         <groupId>org.jenkins-ci.plugins.workflow</groupId>
         <artifactId>workflow-step-api</artifactId>
-        <version>${plugins.workflow.version}</version>
       </dependency>
         <dependency>
           <groupId>org.jenkins-ci.plugins.workflow</groupId>
           <artifactId>workflow-job</artifactId>
-          <version>${plugins.workflow.version}</version>
         </dependency>
         <dependency>
           <groupId>org.jenkins-ci.plugins</groupId>
