@@ -9,7 +9,7 @@
     <relativePath />
   </parent>
   <artifactId>applitools-eyes</artifactId>
-  <version>${revision}${changelist}</version>
+  <version>${revision}</version>
   <packaging>hpi</packaging>
   <name>Applitools Eyes Plugin</name>
   <url>https://wiki.jenkins-ci.org/display/JENKINS/Applitools+Eyes+Plugin</url>
