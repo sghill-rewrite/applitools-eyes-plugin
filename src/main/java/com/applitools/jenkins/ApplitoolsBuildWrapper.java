@@ -13,8 +13,6 @@ import org.kohsuke.stapler.StaplerRequest;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import hudson.util.FormValidation;
 import org.kohsuke.stapler.QueryParameter;
@@ -31,7 +29,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     public boolean notifyByCompletion;
     public String applitoolsApiKey;
 
-    private static boolean isCustomBatchId = false;
+    static boolean isCustomBatchId = false;
 
     static final Map<String, String> ARTIFACT_PATHS = new HashMap();
 
@@ -78,29 +76,34 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
             @Override
             public void buildEnvVars(Map<String, String> env) {
-                Map <String, String> applitoolsArtifacts = getApplitoolsArtifactList(build, listener);
+                Map <String, String> applitoolsArtifacts = getApplitoolsArtifactList(build.getWorkspace(), listener);
                 ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, serverURL, applitoolsApiKey, applitoolsArtifacts);
             }
         };
     }
 
-    public static Map<String, String> getApplitoolsArtifactList(AbstractBuild build, TaskListener listener) {
+    public static Map<String, String> getApplitoolsArtifactList(FilePath workspace, TaskListener listener) {
         Map<String, String> applitoolsArtifacts = new HashMap();
-        FilePath workspace = build.getWorkspace();
         if (workspace != null) {
-            VirtualFile rootDir = workspace.toVirtualFile();
             for (Map.Entry<String, String> apath : ARTIFACT_PATHS.entrySet()) {
                 try {
+                    VirtualFile rootDir = workspace.absolutize().toVirtualFile();
+                    listener.getLogger().println("Workspace absolute path: " + workspace.absolutize());
+
                     InputStream stream = rootDir.child(apath.getValue()).open();
                     String value = IOUtils.toString(stream, StandardCharsets.UTF_8.name()).replaceAll(System.getProperty("line.separator"), "");
                     Matcher m = ApplitoolsCommon.artifactRegexp.matcher(apath.getKey());
                     if (m.find()) {
+                        listener.getLogger().println("Found custom batch id: " + value);
                         applitoolsArtifacts.put(m.group(1), value);
                         isCustomBatchId = true;
                     }
                 } catch (IOException e) {
                     isCustomBatchId = false;
-                    listener.getLogger().println(String.format("Custom BATCH_ID is not defined: %s", rootDir.child(apath.getValue())));
+                    listener.getLogger().println(String.format("Custom BATCH_ID is not defined in: %s", workspace.toVirtualFile()));
+                } catch (InterruptedException e) {
+                    isCustomBatchId = false;
+                    listener.getLogger().println("Invalid workspace path. Skipping check for applitools artifacts");
                 }
             }
         } else {

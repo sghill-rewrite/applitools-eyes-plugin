@@ -1,5 +1,8 @@
 package com.applitools.jenkins;
+import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.*;
+import jenkins.model.ArtifactManager;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -16,6 +19,10 @@ import hudson.EnvVars;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+
+import static com.applitools.jenkins.ApplitoolsBuildWrapper.ARTIFACT_PATHS;
+import static com.applitools.jenkins.ApplitoolsBuildWrapper.isCustomBatchId;
+
 /**
  * Created by addihorowitz on 5/7/17.
  */
@@ -51,6 +58,8 @@ public class ApplitoolsStep extends AbstractStepImpl {
         @StepContextParameter private transient Run<?,?> run;
         @StepContextParameter private transient TaskListener listener;
         @StepContextParameter private transient EnvVars env;
+        @StepContextParameter private transient Launcher launcher;
+        @StepContextParameter private transient FilePath workspace;
 
         private BodyExecution body;
 
@@ -60,9 +69,10 @@ public class ApplitoolsStep extends AbstractStepImpl {
             if (!(job instanceof TopLevelItem)) {
                 throw new Exception("should be top level job " + job);
             }
+
             HashMap<String,String> overrides = new HashMap();
-//            final Map<String, String> applitoolsArtifacts = ApplitoolsBuildWrapper.getApplitoolsArtifactList(run, listener);
-            ApplitoolsCommon.buildEnvVariablesForExternalUsage(overrides, run, listener, step.getServerURL(), step.getApplitoolsApiKey());
+            final Map<String, String> applitoolsArtifacts = ApplitoolsBuildWrapper.getApplitoolsArtifactList(getContext().get(FilePath.class), listener);
+            ApplitoolsCommon.buildEnvVariablesForExternalUsage(overrides, run, listener, step.getServerURL(), step.getApplitoolsApiKey(), applitoolsArtifacts);
 
             body = getContext().newBodyInvoker()
                     .withContext(EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), new ApplitoolsEnvironmentExpander(overrides)))
@@ -90,13 +100,25 @@ public class ApplitoolsStep extends AbstractStepImpl {
 
                         public void closeBatch() {
                             try {
+                                archiveArtifacts();
                                 ApplitoolsCommon.closeBatch(run, listener, step.getServerURL(), step.getNotifyByCompletion(), step.getApplitoolsApiKey());
                             }
                             catch (IOException ex) {
-                              listener.getLogger().println("Error closing batch: " + ex.getMessage());
+                                listener.getLogger().println("Error closing batch: " + ex.getMessage());
                             }
                         }
 
+                        private void archiveArtifacts() {
+                            if (isCustomBatchId) {
+                                try {
+                                    ArtifactManager artifactManager = run.getArtifactManager();
+                                    artifactManager.archive(workspace, launcher, (BuildListener) listener, ARTIFACT_PATHS);
+                                } catch (InterruptedException | IOException ex) {
+                                    listener.getLogger().println("Error archiving artifacts: " + ex.getMessage());
+                                }
+                            }
+
+                        }
                     })
                     .withCallback(BodyExecutionCallback.wrap(getContext()))
                     .start();
