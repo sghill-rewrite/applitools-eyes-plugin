@@ -1,10 +1,10 @@
 package com.applitools.jenkins;
 
-import hidden.jth.org.apache.http.client.methods.HttpDelete;
-import hidden.jth.org.apache.http.client.methods.HttpUriRequest;
-import hidden.jth.org.apache.http.client.utils.URIBuilder;
-import hidden.jth.org.apache.http.impl.client.HttpClientBuilder;
-import hidden.jth.org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.client.HttpClient;
 import hudson.model.JobProperty;
 import hudson.model.Run;
 import hudson.model.TaskListener;
