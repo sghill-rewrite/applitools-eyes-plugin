@@ -97,6 +97,8 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
         if (applitoolsValuesFromArtifacts != null &&
                 applitoolsValuesFromArtifacts.containsKey(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID)) {
             return applitoolsValuesFromArtifacts.get(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID);
+        } else if (System.getenv().containsKey("APPLITOOLS_BATCH_ID")) {
+            return System.getenv().get("APPLITOOLS_BATCH_ID");
         } else {
             final String BATCH_ID_PREFIX = "jenkins";
             SimpleDateFormat buildDate = new SimpleDateFormat(TIMESTAMP_PATTERN);
