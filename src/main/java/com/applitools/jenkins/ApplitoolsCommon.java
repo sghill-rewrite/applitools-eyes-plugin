@@ -37,6 +37,7 @@ public class ApplitoolsCommon {
     public final static Pattern artifactRegexp = Pattern.compile(ApplitoolsCommon.APPLITOOLS_ARTIFACT_PREFIX + "_(.*)");
     private static final Logger logger = Logger.getLogger(ApplitoolsStatusDisplayAction.class.getName());
 
+    @SuppressWarnings("rawtypes")
     public static void integrateWithApplitools(Run run, String serverURL, boolean notifyByCompletion, String applitoolsApiKey
     ) throws IOException
     {
@@ -44,6 +45,7 @@ public class ApplitoolsCommon {
         addApplitoolsActionToBuild(run);
         run.save();
     }
+    @SuppressWarnings("rawtypes")
     private static void updateProjectProperties(Run run, String serverURL, boolean notifyByCompletion, String applitoolsApiKey
                                                ) throws IOException
     {
@@ -76,6 +78,7 @@ public class ApplitoolsCommon {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run build, final TaskListener listener, String serverURL, String applitoolsApiKey) {
         buildEnvVariablesForExternalUsage(env, build, listener, serverURL, applitoolsApiKey, null);
     }
@@ -123,9 +126,10 @@ public class ApplitoolsCommon {
 
     }
 
+    @SuppressWarnings("rawtypes")
     public static Map<String, String> checkApplitoolsArtifacts(List<Run.Artifact> artifactList, VirtualFile file) {
         Map<String, String> result = new HashMap<>();
-        if (artifactList.size() > 0 && file != null) {
+        if (!artifactList.isEmpty() && file != null) {
             for (Run.Artifact artifact : artifactList) {
                 String artifactFileName = artifact.getFileName();
                 Matcher m = artifactRegexp.matcher(artifactFileName);
@@ -133,7 +137,7 @@ public class ApplitoolsCommon {
                     String artifactName = m.group(1);
                     try {
                         InputStream stream = file.child(artifactFileName).open();
-                        String value = IOUtils.toString(stream, StandardCharsets.UTF_8.name()).replaceAll(System.getProperty("line.separator"), "");
+                        String value = IOUtils.toString(stream, StandardCharsets.UTF_8).replaceAll(System.lineSeparator(), "");
                         result.put(artifactName, value);
                     } catch (java.io.IOException e) {
                         logger.warning("Couldn't get artifact " + artifactFileName + "." + e.getMessage());

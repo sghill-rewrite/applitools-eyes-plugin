@@ -1,6 +1,5 @@
 package com.applitools.jenkins;
 
-import hudson.model.BuildListener;
 import hudson.model.TaskListener;
 
 import java.util.Map;
