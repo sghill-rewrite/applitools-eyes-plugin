@@ -1,24 +1,14 @@
 package com.applitools.jenkins;
 
-import hudson.model.AbstractBuild;
 import hudson.model.Run;
 
-import java.io.InputStream;
-import java.io.StringWriter;
 import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
+import java.io.StringWriter;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import hudson.model.JobProperty;
-import jenkins.model.ArtifactManager;
-import jenkins.tasks.SimpleBuildWrapper;
-import jenkins.util.VirtualFile;
-import org.apache.commons.io.IOUtils;
-import org.jenkinsci.plugins.workflow.graph.FlowNode;
 
 
 /**
@@ -26,21 +16,23 @@ import org.jenkinsci.plugins.workflow.graph.FlowNode;
  */
 public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDisplayAction {
     private static final String TIMESTAMP_PATTERN = "yyyyMMddHHmmss";
-    private String projectName;
-    private int buildNumber;
-    private Calendar buildTimestamp;
+    private final String projectName;
+    private final int buildNumber;
+    private final Calendar buildTimestamp;
     private String serverURL;
-    private Run build;
+    @SuppressWarnings("rawtypes")
+    private final Run build;
     private Map<String, String> applitoolsValuesFromArtifacts;
     private static final Logger logger = Logger.getLogger(ApplitoolsStatusDisplayAction.class.getName());
 
+    @SuppressWarnings("rawtypes")
     public ApplitoolsStatusDisplayAction(Run build) {
         this.projectName = build.getParent().getDisplayName();
         this.buildNumber = build.getNumber();
         this.buildTimestamp = build.getTimestamp();
         this.serverURL = null;
         this.build = build;
-        this.applitoolsValuesFromArtifacts = new HashMap();
+        this.applitoolsValuesFromArtifacts = new HashMap<>();
         for (Object property : build.getParent().getAllProperties()) {
             if (property instanceof ApplitoolsProjectConfigProperty) {
                 this.serverURL = ((ApplitoolsProjectConfigProperty) property).getServerURL();
@@ -57,7 +49,7 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
             ApplitoolsCommon.checkApplitoolsArtifacts(
                 this.build.getArtifacts(), 
                 this.build.getArtifactManager().root());
-        try{
+        try {
             String iframeURL = generateIframeURL();
             if (iframeURL == null)
             {
@@ -92,7 +84,7 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
             return null;
         }
 
-        return serverURL + "/app/batchesnoauth/?startInfoBatchId=" + generateBatchId() + "&hideBatchList=true&intercom=false&agentId=eyes-jenkins-1.14.1";
+        return serverURL + "/app/batchesnoauth/?startInfoBatchId=" + generateBatchId() + "&hideBatchList=true&intercom=false&agentId=eyes-jenkins-1.15.2";
     }
 
     public static String generateBatchId(String projectName, int buildNumber, Calendar buildTimestamp) {
