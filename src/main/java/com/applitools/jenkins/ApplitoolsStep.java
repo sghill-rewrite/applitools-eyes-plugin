@@ -27,8 +27,8 @@ import static com.applitools.jenkins.ApplitoolsBuildWrapper.isCustomBatchId;
  */
 public class ApplitoolsStep extends AbstractStepImpl {
     private String serverURL;
-    private boolean notifyByCompletion;
-    private String applitoolsApiKey;
+    private final boolean notifyByCompletion;
+    private final String applitoolsApiKey;
 
     @DataBoundConstructor
     public ApplitoolsStep(String serverURL, boolean notifyByCompletion, String applitoolsApiKey)
@@ -57,8 +57,6 @@ public class ApplitoolsStep extends AbstractStepImpl {
         @Inject(optional=true) private transient ApplitoolsStep step;
         private transient Run<?,?> run;
         private transient TaskListener listener;
-        private transient EnvVars env;
-        private transient Launcher launcher;
         private transient FilePath workspace;
 
         private BodyExecution body;
@@ -67,16 +65,20 @@ public class ApplitoolsStep extends AbstractStepImpl {
         public boolean start() throws Exception {
             run = getContext().get(Run.class);
             listener = getContext().get(TaskListener.class);
-            env = getContext().get(EnvVars.class);
-            launcher = getContext().get(Launcher.class);
             workspace = getContext().get(FilePath.class);
+
+            Launcher launcher = getContext().get(Launcher.class);
+            EnvVars env = getContext().get(EnvVars.class);
 
             Job<?,?> job = run.getParent();
             if (!(job instanceof TopLevelItem)) {
                 throw new Exception("should be top level job " + job);
             }
 
-            HashMap<String,String> overrides = new HashMap<>(env);
+            HashMap<String,String> overrides = new HashMap<>();
+            if (env != null) {
+                overrides.putAll(env);
+            }
             final Map<String, String> applitoolsArtifacts = ApplitoolsBuildWrapper.getApplitoolsArtifactList(getContext().get(FilePath.class), listener);
             ApplitoolsCommon.buildEnvVariablesForExternalUsage(overrides, run, listener, workspace, launcher, step.getServerURL(), step.getApplitoolsApiKey(), applitoolsArtifacts);
 
@@ -123,11 +125,10 @@ public class ApplitoolsStep extends AbstractStepImpl {
         }
 
         @Override
-        public void stop(@Nonnull Throwable cause) throws Exception {
+        public void stop(@Nonnull Throwable cause) {
             if (body!=null) {
                 body.cancel(cause);
             }
-
         }
     }
 
@@ -158,7 +159,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
         }
 
         @Override
-        public ApplitoolsStep newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
+        public ApplitoolsStep newInstance(StaplerRequest req, JSONObject formData) {
             return new ApplitoolsStep(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"), formData.getString("applitoolsApiKey"));
         }
 

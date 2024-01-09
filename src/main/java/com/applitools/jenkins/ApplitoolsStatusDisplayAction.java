@@ -24,7 +24,6 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
     @SuppressWarnings("rawtypes")
     private final Run build;
     private Map<String, String> applitoolsValuesFromArtifacts;
-    private Map<String, String> env;
     private static final Logger logger = Logger.getLogger(ApplitoolsStatusDisplayAction.class.getName());
 
     @SuppressWarnings("rawtypes")
@@ -41,7 +40,6 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
                 break;
             }
         }
-//        this.iframeText = getIframeText();
     }
 
 

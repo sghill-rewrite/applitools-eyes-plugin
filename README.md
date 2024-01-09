@@ -14,7 +14,7 @@ The Applitools support is available on project basis. To enable Applitools suppo
 The plugin exports a set of environment variables which are used by the Applitools SDK when a test is run, 
 and later by the plugin itself to present the Applitools results in the build status page.
   
-These environment variables can overridden during the build.
+These environment variables can overriden during the build.
 For example, to override the APPLITOOLS_BATCH_ID environment variable, place a value to the file ./.applitools/BATCH_ID (in the build root folder). 
 If the file ./.applitools/BATCH_ID exists, the module will read it and export its value as APPLITOOLS_BATCH_ID environment variable. 
 Also, it will be stored as a build artifact, which will later be will be used to display the Applitools test results.

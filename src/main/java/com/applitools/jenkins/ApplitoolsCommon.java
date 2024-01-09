@@ -102,7 +102,6 @@ public class ApplitoolsCommon {
     public static void archiveArtifacts(Run<?,?> run, FilePath workspace, Launcher launcher, final TaskListener listener) {
         try {
             ArtifactManager artifactManager = run.getArtifactManager();
-            artifactManager.root();
             artifactManager.archive(workspace, launcher, (BuildListener) listener, ARTIFACT_PATHS);
         } catch (InterruptedException | IOException ex) {
             listener.getLogger().println("Error archiving artifacts: " + ex.getMessage());
