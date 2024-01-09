@@ -1,6 +1,7 @@
 package com.applitools.jenkins;
 
 import hudson.model.Run;
+import org.apache.commons.lang.mutable.MutableBoolean;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -39,20 +40,18 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
                 break;
             }
         }
-//        this.iframeText = getIframeText();
     }
 
 
     @Override
     public String getIframeText() {
-        this.applitoolsValuesFromArtifacts = 
-            ApplitoolsCommon.checkApplitoolsArtifacts(
-                this.build.getArtifacts(), 
-                this.build.getArtifactManager().root());
+        this.applitoolsValuesFromArtifacts =
+                ApplitoolsCommon.checkApplitoolsArtifacts(
+                        this.build.getArtifacts(),
+                        this.build.getArtifactManager().root());
         try {
             String iframeURL = generateIframeURL();
-            if (iframeURL == null)
-            {
+            if (iframeURL == null) {
                 // In case Applitools support has been removed from the project,
                 // remove iframes from old reports
                 return "";
@@ -60,9 +59,7 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
 
             return "<iframe id=\"frame\" src=\"" + iframeURL +
                     "\" style=\"overflow:hidden;overflow-x:hidden;overflow-y:hidden;height:710px;width:1024px;max-width:100%;resize:vertical;\"></iframe>\n";
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             StringWriter sw = new StringWriter();
             PrintWriter pw = new PrintWriter(sw);
             ex.printStackTrace(pw);
@@ -71,15 +68,12 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
         }
     }
 
-    private String generateBatchId()
-    {
-        return generateBatchId(this.projectName, this.buildNumber, this.buildTimestamp, this.applitoolsValuesFromArtifacts);
+    private String generateBatchId() {
+        return generateBatchId(ApplitoolsCommon.getEnv(), this.projectName, this.buildNumber, this.buildTimestamp, this.applitoolsValuesFromArtifacts);
     }
 
-    private String generateIframeURL()
-    {
-        if (serverURL == null || serverURL.isEmpty())
-        {
+    private String generateIframeURL() {
+        if (serverURL == null || serverURL.isEmpty()) {
             // In case Applitools support has been removed from the project
             return null;
         }
@@ -87,27 +81,36 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
         return serverURL + "/app/batchesnoauth/?startInfoBatchId=" + generateBatchId() + "&hideBatchList=true&intercom=false&agentId=eyes-jenkins-1.15.2";
     }
 
-    public static String generateBatchId(String projectName, int buildNumber, Calendar buildTimestamp) {
-      return generateBatchId(projectName, buildNumber, buildTimestamp, null);
+    public static String generateBatchId(Map<String, String> env, String projectName, int buildNumber, Calendar buildTimestamp) {
+        return generateBatchId(env, projectName, buildNumber, buildTimestamp, null, null);
     }
 
-    public static String generateBatchId(String projectName, int buildNumber, Calendar buildTimestamp,
-                                         Map<String, String> applitoolsValuesFromArtifacts)
-    {
+    public static String generateBatchId(Map<String, String> env, String projectName, int buildNumber, Calendar buildTimestamp,
+                                         Map<String, String> applitoolsValuesFromArtifacts) {
+        return generateBatchId(env, projectName, buildNumber, buildTimestamp, applitoolsValuesFromArtifacts, null);
+    }
+
+    public static String generateBatchId(Map<String, String> env, String projectName, int buildNumber, Calendar buildTimestamp,
+                                         Map<String, String> applitoolsValuesFromArtifacts, MutableBoolean isCustom) {
         if (applitoolsValuesFromArtifacts != null &&
                 applitoolsValuesFromArtifacts.containsKey(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID)) {
             return applitoolsValuesFromArtifacts.get(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID);
-        } else if (System.getenv().containsKey("APPLITOOLS_BATCH_ID")) {
-            return System.getenv().get("APPLITOOLS_BATCH_ID");
-        } else {
-            final String BATCH_ID_PREFIX = "jenkins";
-            SimpleDateFormat buildDate = new SimpleDateFormat(TIMESTAMP_PATTERN);
-            buildDate.setTimeZone(buildTimestamp.getTimeZone());
-
-            return BATCH_ID_PREFIX + "-" + projectName + "-" + buildNumber + "-" + buildDate.format(buildTimestamp.getTime());
+        } else if (env != null) {
+            String batchId = env.get("APPLITOOLS_BATCH_ID");
+            if (batchId != null) {
+                ApplitoolsBuildWrapper.isCustomBatchId = true;
+                if (isCustom != null) {
+                    isCustom.setValue(true);
+                }
+                return batchId;
+            }
         }
+
+        final String BATCH_ID_PREFIX = "jenkins";
+        SimpleDateFormat buildDate = new SimpleDateFormat(TIMESTAMP_PATTERN);
+        buildDate.setTimeZone(buildTimestamp.getTimeZone());
+
+        return BATCH_ID_PREFIX + "-" + projectName + "-" + buildNumber + "-" + buildDate.format(buildTimestamp.getTime());
     }
-
-
 }
 

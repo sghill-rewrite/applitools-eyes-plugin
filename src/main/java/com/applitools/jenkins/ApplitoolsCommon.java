@@ -1,5 +1,10 @@
 package com.applitools.jenkins;
 
+import hudson.FilePath;
+import hudson.Launcher;
+import hudson.model.BuildListener;
+import jenkins.model.ArtifactManager;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URIBuilder;
@@ -23,6 +28,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Logger;
 
+import static com.applitools.jenkins.ApplitoolsBuildWrapper.ARTIFACT_PATHS;
+
 
 /**
  * Common methods to be used other parts of the plugin
@@ -36,6 +43,7 @@ public class ApplitoolsCommon {
     public final static String APPLITOOLS_ARTIFACT_PREFIX = "APPLITOOLS";
     public final static Pattern artifactRegexp = Pattern.compile(ApplitoolsCommon.APPLITOOLS_ARTIFACT_PREFIX + "_(.*)");
     private static final Logger logger = Logger.getLogger(ApplitoolsStatusDisplayAction.class.getName());
+    private static Map<String, String> env;
 
     @SuppressWarnings("rawtypes")
     public static void integrateWithApplitools(Run run, String serverURL, boolean notifyByCompletion, String applitoolsApiKey
@@ -69,7 +77,7 @@ public class ApplitoolsCommon {
         run.getParent().save();
     }
 
-    private static void addApplitoolsActionToBuild(final Run build)
+    private static void addApplitoolsActionToBuild(final Run<?,?> build)
     {
         ApplitoolsStatusDisplayAction buildAction = build.getAction(ApplitoolsStatusDisplayAction.class);
         if (buildAction == null) {
@@ -78,22 +86,35 @@ public class ApplitoolsCommon {
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run build, final TaskListener listener, String serverURL, String applitoolsApiKey) {
-        buildEnvVariablesForExternalUsage(env, build, listener, serverURL, applitoolsApiKey, null);
-    }
-
-    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run build, final TaskListener listener, String serverURL, String applitoolsApiKey, Map<String, String> artifacts)
+    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run<?,?> build, final TaskListener listener, FilePath workspace, Launcher launcher, String serverURL, String applitoolsApiKey, Map<String, String> artifacts)
     {
+        ApplitoolsCommon.env = env;
         String projectName = build.getParent().getDisplayName();
-        String batchId = ApplitoolsStatusDisplayAction.generateBatchId(projectName, build.getNumber(), build.getTimestamp(), artifacts);
+        MutableBoolean isCustom = new MutableBoolean(false);
+        String batchId = ApplitoolsStatusDisplayAction.generateBatchId(env, projectName, build.getNumber(), build.getTimestamp(), artifacts, isCustom);
+        if (isCustom.isTrue()){
+            archiveArtifacts(build, workspace, launcher, listener);
+        }
         String batchName = projectName;
         ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId, projectName, applitoolsApiKey);
     }
 
-    public static void closeBatch(Run run, TaskListener listener, String serverURL, boolean notifyByCompletion, String applitoolsApiKey) throws IOException {
+    public static void archiveArtifacts(Run<?,?> run, FilePath workspace, Launcher launcher, final TaskListener listener) {
+        try {
+            ArtifactManager artifactManager = run.getArtifactManager();
+            artifactManager.archive(workspace, launcher, (BuildListener) listener, ARTIFACT_PATHS);
+        } catch (InterruptedException | IOException ex) {
+            listener.getLogger().println("Error archiving artifacts: " + ex.getMessage());
+        }
+    }
+
+    public static Map<String, String> getEnv() { return env; }
+    public static String getEnv(String key) { return env.get(key); }
+
+    public static void closeBatch(Run<?,?> run, TaskListener listener, String serverURL, boolean notifyByCompletion, String applitoolsApiKey) throws IOException {
         if (notifyByCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
             String batchId = ApplitoolsStatusDisplayAction.generateBatchId(
+                env,
                 run.getParent().getDisplayName(),
                 run.getNumber(),
                 run.getTimestamp(),
@@ -117,7 +138,7 @@ public class ApplitoolsCommon {
             try {
                 listener.getLogger().printf("Batch notification called with %s%n", batchId);
                 int statusCode = httpClient.execute(deleteRequest).getStatusLine().getStatusCode();
-                listener.getLogger().println("Delete batch is done with " + Integer.toString(statusCode) + " status");
+                listener.getLogger().println("Delete batch is done with " + statusCode + " status");
             } finally {
                 deleteRequest.abort();
             }
@@ -126,11 +147,10 @@ public class ApplitoolsCommon {
 
     }
 
-    @SuppressWarnings("rawtypes")
-    public static Map<String, String> checkApplitoolsArtifacts(List<Run.Artifact> artifactList, VirtualFile file) {
+    public static Map<String, String> checkApplitoolsArtifacts(List<? extends Run<?, ?>.Artifact> artifactList, VirtualFile file) {
         Map<String, String> result = new HashMap<>();
         if (!artifactList.isEmpty() && file != null) {
-            for (Run.Artifact artifact : artifactList) {
+            for (Run<?,?>.Artifact artifact : artifactList) {
                 String artifactFileName = artifact.getFileName();
                 Matcher m = artifactRegexp.matcher(artifactFileName);
                 if (m.find()) {

@@ -1,5 +1,6 @@
 package com.applitools.jenkins;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -31,7 +32,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
     static boolean isCustomBatchId = false;
 
-    static final Map<String, String> ARTIFACT_PATHS = new HashMap();
+    static final Map<String, String> ARTIFACT_PATHS = new HashMap<>();
 
     static {
         ARTIFACT_PATHS.put(
@@ -60,7 +61,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     }
 
     @Override
-    public Environment setUp(final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException, InterruptedException {
+    public Environment setUp(final AbstractBuild build, final Launcher launcher, final BuildListener listener) throws IOException {
 
         runPreBuildActions(build, listener);
 
@@ -77,13 +78,13 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
             @Override
             public void buildEnvVars(Map<String, String> env) {
                 Map <String, String> applitoolsArtifacts = getApplitoolsArtifactList(build.getWorkspace(), listener);
-                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, serverURL, applitoolsApiKey, applitoolsArtifacts);
+                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, build.getWorkspace(), launcher, serverURL, applitoolsApiKey, applitoolsArtifacts);
             }
         };
     }
 
     public static Map<String, String> getApplitoolsArtifactList(FilePath workspace, TaskListener listener) {
-        Map<String, String> applitoolsArtifacts = new HashMap();
+        Map<String, String> applitoolsArtifacts = new HashMap<>();
         if (workspace != null) {
             for (Map.Entry<String, String> apath : ARTIFACT_PATHS.entrySet()) {
                 try {
@@ -91,7 +92,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
                     listener.getLogger().println("Workspace absolute path: " + workspace.absolutize());
 
                     InputStream stream = rootDir.child(apath.getValue()).open();
-                    String value = IOUtils.toString(stream, StandardCharsets.UTF_8.name()).replaceAll(System.getProperty("line.separator"), "");
+                    String value = IOUtils.toString(stream, StandardCharsets.UTF_8).replaceAll(System.lineSeparator(), "");
                     Matcher m = ApplitoolsCommon.artifactRegexp.matcher(apath.getKey());
                     if (m.find()) {
                         listener.getLogger().println("Found custom batch id: " + value);
@@ -100,7 +101,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
                     }
                 } catch (IOException e) {
                     isCustomBatchId = false;
-                    listener.getLogger().println(String.format("Custom BATCH_ID is not defined in: %s", workspace.toVirtualFile()));
+                    listener.getLogger().printf("Custom BATCH_ID is not defined in: %s%n", workspace.toVirtualFile());
                 } catch (InterruptedException e) {
                     isCustomBatchId = false;
                     listener.getLogger().println("Invalid workspace path. Skipping check for applitools artifacts");
@@ -112,7 +113,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
         return applitoolsArtifacts;
     }
 
-    private void runPreBuildActions(final Run build, final BuildListener listener) throws IOException, InterruptedException
+    private void runPreBuildActions(final Run<?,?> build, final BuildListener listener) throws IOException
     {
         listener.getLogger().println("Starting Applitools Eyes pre-build (server URL is '" + this.serverURL + "') apiKey is " + this.applitoolsApiKey);
 
@@ -130,12 +131,12 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
             load();
         }
 
-        public boolean isApplicable(Class<? extends AbstractProject> aClass) {
+        public boolean isApplicable(Class<? extends AbstractProject<?,?>> aClass) {
             // indicates that this builder can be used with all kinds of project types
             return true;
         }
 
-        protected static boolean validURL(String url)
+        private static boolean validURL(String url)
         {
             // Just making sure the URL is valid.
             try {
@@ -159,14 +160,15 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
         }
 
         /**
-         * This human readable name is used in the configuration screen.
+         * This human-readable name is used in the configuration screen.
          */
+        @NonNull
         public String getDisplayName() {
             return "Applitools Support";
         }
 
         @Override
-        public BuildWrapper newInstance(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
+        public BuildWrapper newInstance(StaplerRequest req, JSONObject formData) {
             return new ApplitoolsBuildWrapper(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"), formData.getString("applitoolsApiKey"));
         }
     }

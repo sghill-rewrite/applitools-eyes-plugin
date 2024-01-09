@@ -1,5 +1,6 @@
 package com.applitools.jenkins;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
 import hudson.Extension;
@@ -60,6 +61,7 @@ public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject
         }
 
         @Override
+        @NonNull
         public String getDisplayName() {
             return "Set Applitools URL";
         }
