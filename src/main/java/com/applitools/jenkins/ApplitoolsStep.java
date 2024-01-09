@@ -57,6 +57,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
         private transient Run<?,?> run;
         private transient TaskListener listener;
         private transient FilePath workspace;
+        private transient Launcher launcher;
 
         private BodyExecution body;
 
@@ -65,8 +66,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
             run = getContext().get(Run.class);
             listener = getContext().get(TaskListener.class);
             workspace = getContext().get(FilePath.class);
-
-            Launcher launcher = getContext().get(Launcher.class);
+            launcher = getContext().get(Launcher.class);
             EnvVars env = getContext().get(EnvVars.class);
 
             Job<?,?> job = run.getParent();
