@@ -1,4 +1,5 @@
 package com.applitools.jenkins;
+import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
@@ -32,6 +33,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
     @DataBoundConstructor
     public ApplitoolsStep(String serverURL, boolean notifyByCompletion, String applitoolsApiKey)
     {
+        super(true);
         this.notifyByCompletion = notifyByCompletion;
         this.applitoolsApiKey = applitoolsApiKey;
         if (serverURL != null && !serverURL.isEmpty())
@@ -65,9 +67,9 @@ public class ApplitoolsStep extends AbstractStepImpl {
         public boolean start() throws Exception {
             run = getContext().get(Run.class);
             listener = getContext().get(TaskListener.class);
-            env = getContext().get(EnvVars.class);;
-            launcher = getContext().get(Launcher.class);;
-            workspace = getContext().get(FilePath.class);;
+            env = getContext().get(EnvVars.class);
+            launcher = getContext().get(Launcher.class);
+            workspace = getContext().get(FilePath.class);
 
             Job<?,?> job = run.getParent();
             if (!(job instanceof TopLevelItem)) {
@@ -129,14 +131,15 @@ public class ApplitoolsStep extends AbstractStepImpl {
         }
     }
 
-
     @Extension
     public static final class DescriptorImpl extends AbstractStepDescriptorImpl {
         public DescriptorImpl() {
             super(ApplitoolsStepExecution.class);
         }
 
-        @Override public String getDisplayName() {
+        @NonNull
+        @Override
+        public String getDisplayName() {
             return "Applitools Support";
         }
 

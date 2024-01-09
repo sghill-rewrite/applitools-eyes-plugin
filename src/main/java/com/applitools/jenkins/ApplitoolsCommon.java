@@ -77,7 +77,7 @@ public class ApplitoolsCommon {
         run.getParent().save();
     }
 
-    private static void addApplitoolsActionToBuild(final Run build)
+    private static void addApplitoolsActionToBuild(final Run<?,?> build)
     {
         ApplitoolsStatusDisplayAction buildAction = build.getAction(ApplitoolsStatusDisplayAction.class);
         if (buildAction == null) {
@@ -86,7 +86,7 @@ public class ApplitoolsCommon {
         }
     }
 
-    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run build, final TaskListener listener, FilePath workspace, Launcher launcher, String serverURL, String applitoolsApiKey, Map<String, String> artifacts)
+    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run<?,?> build, final TaskListener listener, FilePath workspace, Launcher launcher, String serverURL, String applitoolsApiKey, Map<String, String> artifacts)
     {
         ApplitoolsCommon.env = env;
         String projectName = build.getParent().getDisplayName();
@@ -99,7 +99,7 @@ public class ApplitoolsCommon {
         ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId, projectName, applitoolsApiKey);
     }
 
-    public static void archiveArtifacts(Run run, FilePath workspace, Launcher launcher, final TaskListener listener) {
+    public static void archiveArtifacts(Run<?,?> run, FilePath workspace, Launcher launcher, final TaskListener listener) {
         try {
             ArtifactManager artifactManager = run.getArtifactManager();
             artifactManager.root();
@@ -112,7 +112,7 @@ public class ApplitoolsCommon {
     public static Map<String, String> getEnv() { return env; }
     public static String getEnv(String key) { return env.get(key); }
 
-    public static void closeBatch(Run run, TaskListener listener, String serverURL, boolean notifyByCompletion, String applitoolsApiKey) throws IOException {
+    public static void closeBatch(Run<?,?> run, TaskListener listener, String serverURL, boolean notifyByCompletion, String applitoolsApiKey) throws IOException {
         if (notifyByCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
             String batchId = ApplitoolsStatusDisplayAction.generateBatchId(
                 env,
@@ -139,7 +139,7 @@ public class ApplitoolsCommon {
             try {
                 listener.getLogger().printf("Batch notification called with %s%n", batchId);
                 int statusCode = httpClient.execute(deleteRequest).getStatusLine().getStatusCode();
-                listener.getLogger().println("Delete batch is done with " + Integer.toString(statusCode) + " status");
+                listener.getLogger().println("Delete batch is done with " + statusCode + " status");
             } finally {
                 deleteRequest.abort();
             }
@@ -148,11 +148,10 @@ public class ApplitoolsCommon {
 
     }
 
-    @SuppressWarnings("rawtypes")
-    public static Map<String, String> checkApplitoolsArtifacts(List<Run.Artifact> artifactList, VirtualFile file) {
+    public static Map<String, String> checkApplitoolsArtifacts(List<? extends Run<?, ?>.Artifact> artifactList, VirtualFile file) {
         Map<String, String> result = new HashMap<>();
         if (!artifactList.isEmpty() && file != null) {
-            for (Run.Artifact artifact : artifactList) {
+            for (Run<?,?>.Artifact artifact : artifactList) {
                 String artifactFileName = artifact.getFileName();
                 Matcher m = artifactRegexp.matcher(artifactFileName);
                 if (m.find()) {
