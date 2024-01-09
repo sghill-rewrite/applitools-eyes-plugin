@@ -2,7 +2,6 @@ package com.applitools.jenkins;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.*;
-import jenkins.model.ArtifactManager;
 import net.sf.json.JSONObject;
 import org.jenkinsci.plugins.workflow.steps.*;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -20,7 +19,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import static com.applitools.jenkins.ApplitoolsBuildWrapper.ARTIFACT_PATHS;
 import static com.applitools.jenkins.ApplitoolsBuildWrapper.isCustomBatchId;
 
 /**
@@ -55,24 +53,30 @@ public class ApplitoolsStep extends AbstractStepImpl {
     public static class ApplitoolsStepExecution extends AbstractStepExecutionImpl {
         private static final long serialVersionUID = 1;
         @Inject(optional=true) private transient ApplitoolsStep step;
-        @StepContextParameter private transient Run<?,?> run;
-        @StepContextParameter private transient TaskListener listener;
-        @StepContextParameter private transient EnvVars env;
-        @StepContextParameter private transient Launcher launcher;
-        @StepContextParameter private transient FilePath workspace;
+        private transient Run<?,?> run;
+        private transient TaskListener listener;
+        private transient EnvVars env;
+        private transient Launcher launcher;
+        private transient FilePath workspace;
 
         private BodyExecution body;
 
         @Override
         public boolean start() throws Exception {
+            run = getContext().get(Run.class);
+            listener = getContext().get(TaskListener.class);
+            env = getContext().get(EnvVars.class);;
+            launcher = getContext().get(Launcher.class);;
+            workspace = getContext().get(FilePath.class);;
+
             Job<?,?> job = run.getParent();
             if (!(job instanceof TopLevelItem)) {
                 throw new Exception("should be top level job " + job);
             }
 
-            HashMap<String,String> overrides = new HashMap();
+            HashMap<String,String> overrides = new HashMap<>(env);
             final Map<String, String> applitoolsArtifacts = ApplitoolsBuildWrapper.getApplitoolsArtifactList(getContext().get(FilePath.class), listener);
-            ApplitoolsCommon.buildEnvVariablesForExternalUsage(overrides, run, listener, step.getServerURL(), step.getApplitoolsApiKey(), applitoolsArtifacts);
+            ApplitoolsCommon.buildEnvVariablesForExternalUsage(overrides, run, listener, workspace, launcher, step.getServerURL(), step.getApplitoolsApiKey(), applitoolsArtifacts);
 
             body = getContext().newBodyInvoker()
                     .withContext(EnvironmentExpander.merge(getContext().get(EnvironmentExpander.class), new ApplitoolsEnvironmentExpander(overrides)))
@@ -100,24 +104,14 @@ public class ApplitoolsStep extends AbstractStepImpl {
 
                         public void closeBatch() {
                             try {
-                                archiveArtifacts();
+                                if (isCustomBatchId) {
+                                    ApplitoolsCommon.archiveArtifacts(run, workspace, launcher, listener);
+                                }
                                 ApplitoolsCommon.closeBatch(run, listener, step.getServerURL(), step.getNotifyByCompletion(), step.getApplitoolsApiKey());
                             }
                             catch (IOException ex) {
                                 listener.getLogger().println("Error closing batch: " + ex.getMessage());
                             }
-                        }
-
-                        private void archiveArtifacts() {
-                            if (isCustomBatchId) {
-                                try {
-                                    ArtifactManager artifactManager = run.getArtifactManager();
-                                    artifactManager.archive(workspace, launcher, (BuildListener) listener, ARTIFACT_PATHS);
-                                } catch (InterruptedException | IOException ex) {
-                                    listener.getLogger().println("Error archiving artifacts: " + ex.getMessage());
-                                }
-                            }
-
                         }
                     })
                     .withCallback(BodyExecutionCallback.wrap(getContext()))
@@ -133,9 +127,6 @@ public class ApplitoolsStep extends AbstractStepImpl {
             }
 
         }
-
-
-
     }
 
 

@@ -31,7 +31,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
     static boolean isCustomBatchId = false;
 
-    static final Map<String, String> ARTIFACT_PATHS = new HashMap();
+    static final Map<String, String> ARTIFACT_PATHS = new HashMap<>();
 
     static {
         ARTIFACT_PATHS.put(
@@ -77,7 +77,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
             @Override
             public void buildEnvVars(Map<String, String> env) {
                 Map <String, String> applitoolsArtifacts = getApplitoolsArtifactList(build.getWorkspace(), listener);
-                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, serverURL, applitoolsApiKey, applitoolsArtifacts);
+                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, build.getWorkspace(), launcher, serverURL, applitoolsApiKey, applitoolsArtifacts);
             }
         };
     }
@@ -159,7 +159,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
         }
 
         /**
-         * This human readable name is used in the configuration screen.
+         * This human-readable name is used in the configuration screen.
          */
         public String getDisplayName() {
             return "Applitools Support";
