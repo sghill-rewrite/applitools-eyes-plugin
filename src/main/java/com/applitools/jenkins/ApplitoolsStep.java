@@ -13,7 +13,6 @@ import org.jenkinsci.plugins.workflow.steps.AbstractStepImpl;
 
 import java.io.IOException;
 import java.util.HashMap;
-import javax.annotation.Nonnull;
 import com.google.inject.Inject;
 import hudson.EnvVars;
 import java.util.Collections;
@@ -125,7 +124,7 @@ public class ApplitoolsStep extends AbstractStepImpl {
         }
 
         @Override
-        public void stop(@Nonnull Throwable cause) {
+        public void stop(@NonNull Throwable cause) {
             if (body!=null) {
                 body.cancel(cause);
             }
