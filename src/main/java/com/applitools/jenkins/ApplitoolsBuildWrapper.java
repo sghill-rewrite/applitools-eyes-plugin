@@ -77,8 +77,12 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
             @Override
             public void buildEnvVars(Map<String, String> env) {
-                Map <String, String> applitoolsArtifacts = getApplitoolsArtifactList(build.getWorkspace(), listener);
-                ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, build.getWorkspace(), launcher, serverURL, applitoolsApiKey, applitoolsArtifacts);
+                FilePath workspace = build.getWorkspace();
+                if (workspace != null) {
+                    Map <String, String> applitoolsArtifacts = getApplitoolsArtifactList(workspace, listener);
+                    ApplitoolsCommon.buildEnvVariablesForExternalUsage(env, build, listener, workspace, launcher,
+                            serverURL, applitoolsApiKey, applitoolsArtifacts);
+                }
             }
         };
     }

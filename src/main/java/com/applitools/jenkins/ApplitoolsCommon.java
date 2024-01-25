@@ -106,7 +106,7 @@ public class ApplitoolsCommon {
         String batchName = projectName;
         ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId, projectName, applitoolsApiKey);
         try {
-            boolean deleted = batchIdFilePath.delete();
+            batchIdFilePath.delete();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
