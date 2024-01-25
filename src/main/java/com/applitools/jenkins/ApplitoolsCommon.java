@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import java.util.logging.Logger;
 
 import static com.applitools.jenkins.ApplitoolsBuildWrapper.ARTIFACT_PATHS;
+import static com.applitools.jenkins.ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID;
 
 
 /**
@@ -92,14 +93,27 @@ public class ApplitoolsCommon {
         String projectName = build.getParent().getDisplayName();
         MutableBoolean isCustom = new MutableBoolean(false);
         String batchId = ApplitoolsStatusDisplayAction.generateBatchId(env, projectName, build.getNumber(), build.getTimestamp(), artifacts, isCustom);
+        String filepath = ARTIFACT_PATHS.get(APPLITOOLS_ARTIFACT_PREFIX + "_" + APPLITOOLS_BATCH_ID);
+        FilePath batchIdFilePath = workspace.child(filepath);
         if (isCustom.isTrue()){
+            try {
+                batchIdFilePath.write(batchId, StandardCharsets.UTF_8.name());
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
             archiveArtifacts(build, workspace, launcher, listener);
         }
         String batchName = projectName;
         ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId, projectName, applitoolsApiKey);
+        try {
+            boolean deleted = batchIdFilePath.delete();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static void archiveArtifacts(Run<?,?> run, FilePath workspace, Launcher launcher, final TaskListener listener) {
+    public static void archiveArtifacts(Run<?,?> run, FilePath workspace, Launcher launcher,
+                                        final TaskListener listener) {
         try {
             ArtifactManager artifactManager = run.getArtifactManager();
             artifactManager.archive(workspace, launcher, (BuildListener) listener, ARTIFACT_PATHS);

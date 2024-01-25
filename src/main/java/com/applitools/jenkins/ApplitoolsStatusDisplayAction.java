@@ -101,6 +101,9 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
                 ApplitoolsBuildWrapper.isCustomBatchId = true;
                 if (isCustom != null) {
                     isCustom.setValue(true);
+                    if (applitoolsValuesFromArtifacts != null) {
+                        applitoolsValuesFromArtifacts.put(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID, batchId);
+                    }
                 }
                 return batchId;
             }
