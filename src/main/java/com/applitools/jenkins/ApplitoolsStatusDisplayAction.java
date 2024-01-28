@@ -78,7 +78,7 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
             return null;
         }
 
-        return serverURL + "/app/batchesnoauth/?startInfoBatchId=" + generateBatchId() + "&hideBatchList=true&intercom=false&agentId=eyes-jenkins-1.15.2";
+        return serverURL + "/app/batchesnoauth/?startInfoBatchId=" + generateBatchId() + "&hideBatchList=true&intercom=false&agentId=eyes-jenkins-" + ApplitoolsCommon.getPluginVersion();
     }
 
     public static String generateBatchId(Map<String, String> env, String projectName, int buildNumber, Calendar buildTimestamp) {

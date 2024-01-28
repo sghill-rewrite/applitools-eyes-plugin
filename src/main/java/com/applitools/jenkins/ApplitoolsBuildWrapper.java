@@ -27,9 +27,10 @@ import java.util.regex.Matcher;
 public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable {
     public final static String BATCH_NOTIFICATION_PATH = "/api/sessions/batches/%s/close/bypointerid";
     public String serverURL;
-    public boolean notifyByCompletion;
+    public boolean notifyOnCompletion;
     public String applitoolsApiKey;
-
+    private boolean dontCloseBatches;
+    private boolean deleteBatch;
     static boolean isCustomBatchId = false;
 
     static final Map<String, String> ARTIFACT_PATHS = new HashMap<>();
@@ -46,9 +47,12 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     }
 
     @DataBoundConstructor
-    public ApplitoolsBuildWrapper(String serverURL, boolean notifyByCompletion, String applitoolsApiKey) {
+    public ApplitoolsBuildWrapper(String serverURL, boolean notifyOnCompletion,
+                                  String applitoolsApiKey, boolean dontCloseBatches, boolean deleteBatch) {
         this.applitoolsApiKey = applitoolsApiKey;
-        this.notifyByCompletion = notifyByCompletion;
+        this.notifyOnCompletion = notifyOnCompletion;
+        this.dontCloseBatches = dontCloseBatches;
+        this.deleteBatch = deleteBatch;
         if (serverURL != null && !serverURL.isEmpty())
         {
             if (DescriptorImpl.validURL(serverURL))
@@ -71,7 +75,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
                 if (isCustomBatchId) {
                     build.pickArtifactManager().archive(build.getWorkspace(), launcher, listener, ARTIFACT_PATHS);
                 }
-                ApplitoolsCommon.closeBatch(build, listener, serverURL, notifyByCompletion, applitoolsApiKey);
+                ApplitoolsCommon.closeBatch(build, listener, serverURL, notifyOnCompletion, applitoolsApiKey);
                 return true;
             }
 
@@ -121,7 +125,8 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     {
         listener.getLogger().println("Starting Applitools Eyes pre-build (server URL is '" + this.serverURL + "') apiKey is " + this.applitoolsApiKey);
 
-        ApplitoolsCommon.integrateWithApplitools(build, this.serverURL, this.notifyByCompletion, this.applitoolsApiKey);
+        ApplitoolsCommon.integrateWithApplitools(build,
+                this.serverURL, this.notifyOnCompletion, this.applitoolsApiKey, this.dontCloseBatches, this.deleteBatch);
 
         listener.getLogger().println("Finished Applitools Eyes pre-build");
     }
@@ -129,7 +134,7 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
     @Extension
     public static final class DescriptorImpl extends Descriptor<BuildWrapper> {
         public static String APPLITOOLS_DEFAULT_URL="https://eyes.applitools.com";
-        public static boolean NOTIFY_BY_COMPLETION=true;
+        public static boolean NOTIFY_ON_COMPLETION=true;
 
         public DescriptorImpl() {
             load();
@@ -173,7 +178,12 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
 
         @Override
         public BuildWrapper newInstance(StaplerRequest req, JSONObject formData) {
-            return new ApplitoolsBuildWrapper(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"), formData.getString("applitoolsApiKey"));
+            return new ApplitoolsBuildWrapper(
+                    formData.getString("serverURL"),
+                    formData.getBoolean("notifyOnCompletion"),
+                    formData.getString("applitoolsApiKey"),
+                    formData.getBoolean("dontCloseBatches"),
+                    formData.getBoolean("deleteBatch"));
         }
     }
 }

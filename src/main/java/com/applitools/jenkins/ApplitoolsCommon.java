@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Logger;
@@ -38,7 +39,7 @@ import static com.applitools.jenkins.ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_
 public class ApplitoolsCommon {
 
     public final static String APPLITOOLS_DEFAULT_URL = "https://eyes.applitools.com";
-    public final static boolean NOTIFY_BY_COMPLETION = true;
+    public final static boolean NOTIFY_ON_COMPLETION = true;
     public final static String BATCH_NOTIFICATION_PATH = "/api/sessions/batches/%s/close/bypointerid";
     public final static String APPLITOOLS_ARTIFACT_FOLDER = ".applitools";
     public final static String APPLITOOLS_ARTIFACT_PREFIX = "APPLITOOLS";
@@ -47,15 +48,17 @@ public class ApplitoolsCommon {
     private static Map<String, String> env;
 
     @SuppressWarnings("rawtypes")
-    public static void integrateWithApplitools(Run run, String serverURL, boolean notifyByCompletion, String applitoolsApiKey
+    public static void integrateWithApplitools(Run run, String serverURL, boolean notifyOnCompletion,
+                                               String applitoolsApiKey, boolean dontCloseBatches, boolean deleteBatch
     ) throws IOException
     {
-        updateProjectProperties(run, serverURL, notifyByCompletion, applitoolsApiKey);
+        updateProjectProperties(run, serverURL, notifyOnCompletion, applitoolsApiKey, dontCloseBatches, deleteBatch);
         addApplitoolsActionToBuild(run);
         run.save();
     }
     @SuppressWarnings("rawtypes")
-    private static void updateProjectProperties(Run run, String serverURL, boolean notifyByCompletion, String applitoolsApiKey
+    private static void updateProjectProperties(Run run, String serverURL, boolean notifyOnCompletion,
+                                                String applitoolsApiKey, boolean dontCloseBatches, boolean deleteBatch
                                                ) throws IOException
     {
         boolean found = false;
@@ -64,15 +67,17 @@ public class ApplitoolsCommon {
             if (property instanceof ApplitoolsProjectConfigProperty)
             {
                 ((ApplitoolsProjectConfigProperty)property).setServerURL(serverURL);
-                ((ApplitoolsProjectConfigProperty)property).setNotifyByCompletion(notifyByCompletion);
+                ((ApplitoolsProjectConfigProperty)property).setNotifyOnCompletion(notifyOnCompletion);
                 ((ApplitoolsProjectConfigProperty)property).setApplitoolsApiKey(applitoolsApiKey);
+                ((ApplitoolsProjectConfigProperty)property).setDontCloseBatches(dontCloseBatches);
+                ((ApplitoolsProjectConfigProperty)property).setDeleteBatch(deleteBatch);
                 found = true;
                 break;
             }
         }
         if (!found)
         {
-            JobProperty jp = new ApplitoolsProjectConfigProperty(serverURL, notifyByCompletion, applitoolsApiKey);
+            JobProperty jp = new ApplitoolsProjectConfigProperty(serverURL, notifyOnCompletion, applitoolsApiKey);
             run.getParent().addProperty(jp);
         }
         run.getParent().save();
@@ -125,8 +130,9 @@ public class ApplitoolsCommon {
     public static Map<String, String> getEnv() { return env; }
     public static String getEnv(String key) { return env.get(key); }
 
-    public static void closeBatch(Run<?,?> run, TaskListener listener, String serverURL, boolean notifyByCompletion, String applitoolsApiKey) throws IOException {
-        if (notifyByCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
+    public static void closeBatch(Run<?,?> run, TaskListener listener, String serverURL,
+                                  boolean notifyOnCompletion, String applitoolsApiKey) throws IOException {
+        if (notifyOnCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
             String batchId = ApplitoolsStatusDisplayAction.generateBatchId(
                 env,
                 run.getParent().getDisplayName(),
@@ -182,4 +188,22 @@ public class ApplitoolsCommon {
         return result;
     }
 
+    private static String pluginVersion = null;
+
+    public static String getPluginVersion() {
+        if (pluginVersion == null) {
+            pluginVersion = ApplitoolsCommon.class.getPackage().getImplementationVersion();
+            try {
+                Properties p = new Properties();
+                InputStream is = ApplitoolsCommon.class.getClassLoader().getResourceAsStream("my.properties");
+                if (is != null) {
+                    p.load(is);
+                    pluginVersion = p.getProperty("version", "");
+                }
+            } catch (Exception e) {
+                // ignore
+            }
+        }
+        return pluginVersion;
+    }
 }

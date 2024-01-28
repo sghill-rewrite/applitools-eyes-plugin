@@ -26,15 +26,23 @@ import static com.applitools.jenkins.ApplitoolsBuildWrapper.isCustomBatchId;
  */
 public class ApplitoolsStep extends AbstractStepImpl {
     private String serverURL;
-    private final boolean notifyByCompletion;
+    private final boolean notifyOnCompletion;
     private final String applitoolsApiKey;
+    private final boolean dontCloseBatches;
+    private final boolean deleteBatch;
 
     @DataBoundConstructor
-    public ApplitoolsStep(String serverURL, boolean notifyByCompletion, String applitoolsApiKey)
+    public ApplitoolsStep(String serverURL,
+                          boolean notifyOnCompletion,
+                          String applitoolsApiKey,
+                          boolean dontCloseBatches,
+                          boolean deleteBatch)
     {
         super(true);
-        this.notifyByCompletion = notifyByCompletion;
+        this.notifyOnCompletion = notifyOnCompletion;
         this.applitoolsApiKey = applitoolsApiKey;
+        this.dontCloseBatches = dontCloseBatches;
+        this.deleteBatch = deleteBatch;
         if (serverURL != null && !serverURL.isEmpty())
             this.serverURL = serverURL;
     }
@@ -49,7 +57,9 @@ public class ApplitoolsStep extends AbstractStepImpl {
         return this.applitoolsApiKey;
     }
 
-    public boolean getNotifyByCompletion() { return this.notifyByCompletion; }
+    public boolean getNotifyOnCompletion() { return this.notifyOnCompletion; }
+    public boolean getDontCloseBatches() { return this.dontCloseBatches; }
+    public boolean getDeleteBatch() { return this.deleteBatch; }
 
     public static class ApplitoolsStepExecution extends AbstractStepExecutionImpl {
         private static final long serialVersionUID = 1;
@@ -87,7 +97,12 @@ public class ApplitoolsStep extends AbstractStepImpl {
                         @Override
                         public void onStart(StepContext context) {
                             try {
-                                ApplitoolsCommon.integrateWithApplitools(run, step.getServerURL(), step.getNotifyByCompletion(), step.getApplitoolsApiKey());
+                                ApplitoolsCommon.integrateWithApplitools(run,
+                                        step.getServerURL(),
+                                        step.getNotifyOnCompletion(),
+                                        step.getApplitoolsApiKey(),
+                                        step.getDontCloseBatches(),
+                                        step.getDeleteBatch());
                             } catch (Exception ex) {
                                 listener.getLogger().println("Failed to update properties");
                             }
@@ -110,7 +125,8 @@ public class ApplitoolsStep extends AbstractStepImpl {
                                 if (isCustomBatchId) {
                                     ApplitoolsCommon.archiveArtifacts(run, workspace, launcher, listener);
                                 }
-                                ApplitoolsCommon.closeBatch(run, listener, step.getServerURL(), step.getNotifyByCompletion(), step.getApplitoolsApiKey());
+
+                                ApplitoolsCommon.closeBatch(run, listener, step.getServerURL(), step.getNotifyOnCompletion(), step.getApplitoolsApiKey());
                             }
                             catch (IOException ex) {
                                 listener.getLogger().println("Error closing batch: " + ex.getMessage());
@@ -159,7 +175,13 @@ public class ApplitoolsStep extends AbstractStepImpl {
 
         @Override
         public ApplitoolsStep newInstance(StaplerRequest req, JSONObject formData) {
-            return new ApplitoolsStep(formData.getString("serverURL"), formData.getBoolean("notifyByCompletion"), formData.getString("applitoolsApiKey"));
+            return new ApplitoolsStep(
+                    formData.getString("serverURL"),
+                    formData.getBoolean("notifyOnCompletion"),
+                    formData.getString("applitoolsApiKey"),
+                    formData.getBoolean("dontCloseBatches"),
+                    formData.getBoolean("deleteBatch")
+                    );
         }
 
     }

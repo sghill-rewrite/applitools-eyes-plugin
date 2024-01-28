@@ -9,28 +9,34 @@ import javaposse.jobdsl.plugin.DslExtensionMethod;
 public class ApplitoolsJobDsl extends ContextExtensionPoint {
     @DslExtensionMethod(context = WrapperContext.class)
     public Object applitools(String serverUrl) {
-        return applitools(serverUrl, ApplitoolsCommon.NOTIFY_BY_COMPLETION);
+        return applitools(serverUrl, ApplitoolsCommon.NOTIFY_ON_COMPLETION);
     }
 
     @DslExtensionMethod(context = WrapperContext.class)
-    public Object applitools(String serverUrl, boolean notifyByCompletion) {
-        return new ApplitoolsBuildWrapper(serverUrl, notifyByCompletion, null);
+    public Object applitools(String serverUrl, boolean notifyOnCompletion) {
+        return new ApplitoolsBuildWrapper(
+                serverUrl, notifyOnCompletion, null, false, false);
     }
 
     @DslExtensionMethod(context = WrapperContext.class)
-    public Object applitools(String serverUrl, boolean notifyByCompletion, String apiKey) {
-        return new ApplitoolsBuildWrapper(serverUrl, notifyByCompletion, apiKey);
+    public Object applitools(String serverUrl, boolean notifyOnCompletion, String apiKey) {
+        return new ApplitoolsBuildWrapper(
+                serverUrl, notifyOnCompletion, apiKey, false, false);
     }
 
 
     @DslExtensionMethod(context = WrapperContext.class)
     public Object applitools(String serverUrl, String apiKey) {
-        return new ApplitoolsBuildWrapper(serverUrl, true, apiKey);
+        return new ApplitoolsBuildWrapper(
+                serverUrl, true, apiKey, false, false);
     }
 
     @DslExtensionMethod(context = WrapperContext.class)
     public Object applitools() {
-        return new ApplitoolsBuildWrapper(ApplitoolsCommon.APPLITOOLS_DEFAULT_URL, ApplitoolsCommon.NOTIFY_BY_COMPLETION, null);
+        return new ApplitoolsBuildWrapper(
+                ApplitoolsCommon.APPLITOOLS_DEFAULT_URL,
+                ApplitoolsCommon.NOTIFY_ON_COMPLETION,
+                null, false, false);
     }
 
 }

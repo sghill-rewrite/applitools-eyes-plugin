@@ -14,12 +14,15 @@ import java.io.Serializable;
  */
 public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject<?, ?>> implements Serializable{
     private String serverURL;
-    private boolean notifyByCompletion;
+    private boolean notifyOnCompletion;
     private String applitoolsApiKey;
+    private boolean dontCloseBatches;
 
-    public ApplitoolsProjectConfigProperty(String serverURL, boolean notifyByCompletion, String applitoolsApiKey) {
+    private boolean deleteBatch;
+
+    public ApplitoolsProjectConfigProperty(String serverURL, boolean notifyOnCompletion, String applitoolsApiKey) {
         this.serverURL = serverURL;
-        this.notifyByCompletion = notifyByCompletion;
+        this.notifyOnCompletion = notifyOnCompletion;
         this.applitoolsApiKey = applitoolsApiKey;
     }
 
@@ -41,9 +44,21 @@ public class ApplitoolsProjectConfigProperty extends JobProperty<AbstractProject
         this.serverURL = serverURL;
     }
 
-    public boolean getNotifyByCompletion() { return this.notifyByCompletion; }
+    public boolean getNotifyOnCompletion() { return this.notifyOnCompletion; }
 
-    public void setNotifyByCompletion(boolean value) { this.notifyByCompletion = value; }
+    public void setNotifyOnCompletion(boolean value) { this.notifyOnCompletion = value; }
+
+    public boolean getDontCloseBatches() {
+        return dontCloseBatches;
+    }
+
+    public void setDontCloseBatches(boolean dontCloseBatches) {
+        this.dontCloseBatches = dontCloseBatches;
+    }
+
+    public boolean getDeleteBatch() { return deleteBatch; }
+
+    public void setDeleteBatch(boolean deleteBatch) { this.deleteBatch = deleteBatch; }
 
     @Override
     public JobPropertyDescriptor getDescriptor() {
