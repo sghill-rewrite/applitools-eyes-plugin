@@ -126,7 +126,14 @@ public class ApplitoolsStep extends AbstractStepImpl {
                                     ApplitoolsCommon.archiveArtifacts(run, workspace, launcher, listener);
                                 }
 
-                                ApplitoolsCommon.closeBatch(run, listener, step.getServerURL(), step.getNotifyOnCompletion(), step.getApplitoolsApiKey());
+                                if (!step.dontCloseBatches){
+                                    ApplitoolsCommon.closeBatch(
+                                            run, listener,
+                                            step.getServerURL(),
+                                            step.getNotifyOnCompletion(),
+                                            step.getApplitoolsApiKey(),
+                                            step.getDeleteBatch());
+                                }
                             }
                             catch (IOException ex) {
                                 listener.getLogger().println("Error closing batch: " + ex.getMessage());

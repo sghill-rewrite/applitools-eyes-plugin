@@ -75,7 +75,10 @@ public class ApplitoolsBuildWrapper extends BuildWrapper implements Serializable
                 if (isCustomBatchId) {
                     build.pickArtifactManager().archive(build.getWorkspace(), launcher, listener, ARTIFACT_PATHS);
                 }
-                ApplitoolsCommon.closeBatch(build, listener, serverURL, notifyOnCompletion, applitoolsApiKey);
+                if (!dontCloseBatches) {
+                    ApplitoolsCommon.closeBatch(
+                            build, listener, serverURL, notifyOnCompletion, applitoolsApiKey, deleteBatch);
+                }
                 return true;
             }
 

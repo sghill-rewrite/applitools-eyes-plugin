@@ -131,7 +131,8 @@ public class ApplitoolsCommon {
     public static String getEnv(String key) { return env.get(key); }
 
     public static void closeBatch(Run<?,?> run, TaskListener listener, String serverURL,
-                                  boolean notifyOnCompletion, String applitoolsApiKey) throws IOException {
+                                  boolean notifyOnCompletion, String applitoolsApiKey, boolean deleteBatch)
+            throws IOException {
         if (notifyOnCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
             String batchId = ApplitoolsStatusDisplayAction.generateBatchId(
                 env,
@@ -154,15 +155,16 @@ public class ApplitoolsCommon {
                 logger.warning("Couldn't build URI: " + e.getMessage());
             }
 
-            HttpUriRequest deleteRequest = new HttpDelete(targetUrl);
-            try {
-                listener.getLogger().printf("Batch notification called with %s%n", batchId);
-                int statusCode = httpClient.execute(deleteRequest).getStatusLine().getStatusCode();
-                listener.getLogger().println("Delete batch is done with " + statusCode + " status");
-            } finally {
-                deleteRequest.abort();
+            if (deleteBatch) {
+                HttpUriRequest deleteRequest = new HttpDelete(targetUrl);
+                try {
+                    listener.getLogger().printf("Batch notification called with %s%n", batchId);
+                    int statusCode = httpClient.execute(deleteRequest).getStatusLine().getStatusCode();
+                    listener.getLogger().println("Delete batch is done with " + statusCode + " status");
+                } finally {
+                    deleteRequest.abort();
+                }
             }
-
         }
 
     }
