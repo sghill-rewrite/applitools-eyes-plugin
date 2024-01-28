@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.logging.Logger;
@@ -203,7 +204,7 @@ public class ApplitoolsCommon {
                     pluginVersion = p.getProperty("version", "");
                 }
             } catch (Exception e) {
-                // ignore
+                logger.log(Level.WARNING, "Error getting plugin version", e);
             }
         }
         return pluginVersion;
