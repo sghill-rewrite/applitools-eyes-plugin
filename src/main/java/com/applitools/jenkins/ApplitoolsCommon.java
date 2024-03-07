@@ -3,36 +3,40 @@ package com.applitools.jenkins;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.BuildListener;
-import jenkins.model.ArtifactManager;
-import org.apache.commons.lang.mutable.MutableBoolean;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.client.HttpClient;
 import hudson.model.JobProperty;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import jenkins.util.VirtualFile;
-import org.apache.commons.io.IOUtils;
-
-import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Level;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.logging.Logger;
+import jenkins.model.ArtifactManager;
+import jenkins.util.VirtualFile;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.mutable.MutableBoolean;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.HttpEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 import static com.applitools.jenkins.ApplitoolsBuildWrapper.ARTIFACT_PATHS;
 import static com.applitools.jenkins.ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID;
-
 
 /**
  * Common methods to be used other parts of the plugin
@@ -42,6 +46,7 @@ public class ApplitoolsCommon {
     public final static String APPLITOOLS_DEFAULT_URL = "https://eyes.applitools.com";
     public final static boolean NOTIFY_ON_COMPLETION = true;
     public final static String BATCH_NOTIFICATION_PATH = "/api/sessions/batches/%s/close/bypointerid";
+    public final static String BATCH_BIND_POINTERS_PATH = "/api/sessions/batches/bindpointers/%s";
     public final static String APPLITOOLS_ARTIFACT_FOLDER = ".applitools";
     public final static String APPLITOOLS_ARTIFACT_PREFIX = "APPLITOOLS";
     public final static Pattern artifactRegexp = Pattern.compile(ApplitoolsCommon.APPLITOOLS_ARTIFACT_PREFIX + "_(.*)");
@@ -50,16 +55,19 @@ public class ApplitoolsCommon {
 
     @SuppressWarnings("rawtypes")
     public static void integrateWithApplitools(Run run, String serverURL, boolean notifyOnCompletion,
-                                               String applitoolsApiKey, boolean dontCloseBatches, boolean deleteBatch
+                                               String applitoolsApiKey, boolean dontCloseBatches,
+                                               boolean eyesScmIntegrationEnabled
     ) throws IOException
     {
-        updateProjectProperties(run, serverURL, notifyOnCompletion, applitoolsApiKey, dontCloseBatches, deleteBatch);
+        updateProjectProperties(run, serverURL, notifyOnCompletion, applitoolsApiKey, dontCloseBatches, eyesScmIntegrationEnabled);
         addApplitoolsActionToBuild(run);
         run.save();
     }
+
     @SuppressWarnings("rawtypes")
     private static void updateProjectProperties(Run run, String serverURL, boolean notifyOnCompletion,
-                                                String applitoolsApiKey, boolean dontCloseBatches, boolean deleteBatch
+                                                String applitoolsApiKey, boolean dontCloseBatches,
+                                                boolean eyesScmIntegrationEnabled
                                                ) throws IOException
     {
         boolean found = false;
@@ -71,14 +79,15 @@ public class ApplitoolsCommon {
                 ((ApplitoolsProjectConfigProperty)property).setNotifyOnCompletion(notifyOnCompletion);
                 ((ApplitoolsProjectConfigProperty)property).setApplitoolsApiKey(applitoolsApiKey);
                 ((ApplitoolsProjectConfigProperty)property).setDontCloseBatches(dontCloseBatches);
-                ((ApplitoolsProjectConfigProperty)property).setDeleteBatch(deleteBatch);
+                ((ApplitoolsProjectConfigProperty)property).setEyesScmIntegrationEnabled(eyesScmIntegrationEnabled);
                 found = true;
                 break;
             }
         }
         if (!found)
         {
-            JobProperty jp = new ApplitoolsProjectConfigProperty(serverURL, notifyOnCompletion, applitoolsApiKey);
+            JobProperty jp = new ApplitoolsProjectConfigProperty(
+                    serverURL, notifyOnCompletion, applitoolsApiKey, dontCloseBatches, eyesScmIntegrationEnabled);
             run.getParent().addProperty(jp);
         }
         run.getParent().save();
@@ -93,12 +102,71 @@ public class ApplitoolsCommon {
         }
     }
 
-    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run<?,?> build, final TaskListener listener, FilePath workspace, Launcher launcher, String serverURL, String applitoolsApiKey, Map<String, String> artifacts)
+    private static void sendBindBatchPointersRequest(String serverURL, String batchId, String buildId, String apiKey,
+                                                     final TaskListener listener)
+            throws IOException {
+        HttpClient httpClient = HttpClientBuilder.create().build();
+        URI targetUrl = null;
+        try {
+            targetUrl = new URIBuilder(serverURL)
+                    .setPath(String.format(BATCH_BIND_POINTERS_PATH, buildId))
+                    .addParameter("apiKey", apiKey)
+                    .build();
+        } catch (URISyntaxException e) {
+            logger.warning("Couldn't build URI: " + e.getMessage());
+        }
+
+        HttpPost request = new HttpPost(targetUrl);
+        String jsonData = "{\"secondaryBatchPointerId\":\"" + batchId + "\"}";
+        HttpEntity params= new StringEntity(jsonData, ContentType.APPLICATION_JSON);
+        request.setEntity(params);
+        try {
+            listener.getLogger().printf("Batch Bind Pointers request called with %s%n", buildId);
+            HttpResponse httpResponse = httpClient.execute(request);
+            StatusLine statusLine = httpResponse.getStatusLine();
+            int statusCode = statusLine.getStatusCode();
+            listener.getLogger().println("Batch binding is done with " + statusCode + " status");
+            if (statusCode >= 400) {
+                listener.error("Batch binding failed with " + statusCode + " status");
+            }
+        } catch (IOException e) {
+            listener.error("Batch binding failed with " + e.getMessage());
+            throw e;
+        } finally {
+            request.abort();
+        }
+    }
+
+    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run<?,?> build,
+                                                         final TaskListener listener, FilePath workspace,
+                                                         Launcher launcher, String serverURL, String applitoolsApiKey,
+                                                         Map<String, String> artifacts, boolean scmIntegrationEnabled)
     {
         ApplitoolsCommon.env = env;
         String projectName = build.getParent().getDisplayName();
         MutableBoolean isCustom = new MutableBoolean(false);
-        String batchId = ApplitoolsStatusDisplayAction.generateBatchId(env, projectName, build.getNumber(), build.getTimestamp(), artifacts, isCustom);
+
+        String batchId = ApplitoolsStatusDisplayAction.generateBatchId(
+                env, projectName, build.getNumber(), build.getTimestamp(), artifacts, isCustom, scmIntegrationEnabled);
+
+        if (scmIntegrationEnabled) {
+
+            String buildId = null;
+            if (env.get("APPLITOOLS_BATCH_ID") != null) {
+                buildId = env.get("APPLITOOLS_BATCH_ID");
+            }
+            else {
+                buildId = env.get("GIT_COMMIT");
+            }
+
+            try {
+                sendBindBatchPointersRequest(serverURL, batchId, buildId, applitoolsApiKey, listener);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            batchId = buildId;
+        }
+
         String filepath = ARTIFACT_PATHS.get(APPLITOOLS_ARTIFACT_PREFIX + "_" + APPLITOOLS_BATCH_ID);
         FilePath batchIdFilePath = workspace.child(filepath);
         if (isCustom.isTrue()){
@@ -110,7 +178,8 @@ public class ApplitoolsCommon {
             archiveArtifacts(build, workspace, launcher, listener);
         }
         String batchName = projectName;
-        ApplitoolsEnvironmentUtil.outputVariables(listener, env, serverURL, batchName, batchId, projectName, applitoolsApiKey);
+        ApplitoolsEnvironmentUtil.outputVariables(listener, build, env, serverURL, batchName, batchId, projectName,
+                applitoolsApiKey);
         try {
             batchIdFilePath.delete();
         } catch (IOException | InterruptedException e) {
@@ -132,7 +201,7 @@ public class ApplitoolsCommon {
     public static String getEnv(String key) { return env.get(key); }
 
     public static void closeBatch(Run<?,?> run, TaskListener listener, String serverURL,
-                                  boolean notifyOnCompletion, String applitoolsApiKey, boolean deleteBatch)
+                                  boolean notifyOnCompletion, String applitoolsApiKey, boolean scmIntegrationEnabled)
             throws IOException {
         if (notifyOnCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
             String batchId = ApplitoolsStatusDisplayAction.generateBatchId(
@@ -143,7 +212,8 @@ public class ApplitoolsCommon {
                 ApplitoolsCommon.checkApplitoolsArtifacts(
                     run.getArtifacts(),
                     run.getArtifactManager().root()
-                )
+                ),
+                null, scmIntegrationEnabled
             );
             HttpClient httpClient = HttpClientBuilder.create().build();
             URI targetUrl = null;
@@ -156,15 +226,13 @@ public class ApplitoolsCommon {
                 logger.warning("Couldn't build URI: " + e.getMessage());
             }
 
-            if (deleteBatch) {
-                HttpUriRequest deleteRequest = new HttpDelete(targetUrl);
-                try {
-                    listener.getLogger().printf("Batch notification called with %s%n", batchId);
-                    int statusCode = httpClient.execute(deleteRequest).getStatusLine().getStatusCode();
-                    listener.getLogger().println("Delete batch is done with " + statusCode + " status");
-                } finally {
-                    deleteRequest.abort();
-                }
+            HttpUriRequest deleteRequest = new HttpDelete(targetUrl);
+            try {
+                listener.getLogger().printf("Batch notification called with %s%n", batchId);
+                int statusCode = httpClient.execute(deleteRequest).getStatusLine().getStatusCode();
+                listener.getLogger().println("Delete batch is done with " + statusCode + " status");
+            } finally {
+                deleteRequest.abort();
             }
         }
 
