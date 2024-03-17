@@ -6,6 +6,7 @@ import hudson.model.BuildListener;
 import hudson.model.JobProperty;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+
 import java.io.InputStream;
 import java.io.IOException;
 import java.net.URI;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import jenkins.model.ArtifactManager;
 import jenkins.util.VirtualFile;
 import org.apache.commons.io.IOUtils;
@@ -57,8 +59,7 @@ public class ApplitoolsCommon {
     public static void integrateWithApplitools(Run run, String serverURL, boolean notifyOnCompletion,
                                                String applitoolsApiKey, boolean dontCloseBatches,
                                                boolean eyesScmIntegrationEnabled
-    ) throws IOException
-    {
+    ) throws IOException {
         updateProjectProperties(run, serverURL, notifyOnCompletion, applitoolsApiKey, dontCloseBatches, eyesScmIntegrationEnabled);
         addApplitoolsActionToBuild(run);
         run.save();
@@ -68,24 +69,20 @@ public class ApplitoolsCommon {
     private static void updateProjectProperties(Run run, String serverURL, boolean notifyOnCompletion,
                                                 String applitoolsApiKey, boolean dontCloseBatches,
                                                 boolean eyesScmIntegrationEnabled
-                                               ) throws IOException
-    {
+    ) throws IOException {
         boolean found = false;
-        for (Object property:run.getParent().getAllProperties())
-        {
-            if (property instanceof ApplitoolsProjectConfigProperty)
-            {
-                ((ApplitoolsProjectConfigProperty)property).setServerURL(serverURL);
-                ((ApplitoolsProjectConfigProperty)property).setNotifyOnCompletion(notifyOnCompletion);
-                ((ApplitoolsProjectConfigProperty)property).setApplitoolsApiKey(applitoolsApiKey);
-                ((ApplitoolsProjectConfigProperty)property).setDontCloseBatches(dontCloseBatches);
-                ((ApplitoolsProjectConfigProperty)property).setEyesScmIntegrationEnabled(eyesScmIntegrationEnabled);
+        for (Object property : run.getParent().getAllProperties()) {
+            if (property instanceof ApplitoolsProjectConfigProperty) {
+                ((ApplitoolsProjectConfigProperty) property).setServerURL(serverURL);
+                ((ApplitoolsProjectConfigProperty) property).setNotifyOnCompletion(notifyOnCompletion);
+                ((ApplitoolsProjectConfigProperty) property).setApplitoolsApiKey(applitoolsApiKey);
+                ((ApplitoolsProjectConfigProperty) property).setDontCloseBatches(dontCloseBatches);
+                ((ApplitoolsProjectConfigProperty) property).setEyesScmIntegrationEnabled(eyesScmIntegrationEnabled);
                 found = true;
                 break;
             }
         }
-        if (!found)
-        {
+        if (!found) {
             JobProperty jp = new ApplitoolsProjectConfigProperty(
                     serverURL, notifyOnCompletion, applitoolsApiKey, dontCloseBatches, eyesScmIntegrationEnabled);
             run.getParent().addProperty(jp);
@@ -93,8 +90,7 @@ public class ApplitoolsCommon {
         run.getParent().save();
     }
 
-    private static void addApplitoolsActionToBuild(final Run<?,?> build)
-    {
+    private static void addApplitoolsActionToBuild(final Run<?, ?> build) {
         ApplitoolsStatusDisplayAction buildAction = build.getAction(ApplitoolsStatusDisplayAction.class);
         if (buildAction == null) {
             buildAction = new ApplitoolsStatusDisplayAction(build);
@@ -118,7 +114,7 @@ public class ApplitoolsCommon {
 
         HttpPost request = new HttpPost(targetUrl);
         String jsonData = "{\"secondaryBatchPointerId\":\"" + batchId + "\"}";
-        HttpEntity params= new StringEntity(jsonData, ContentType.APPLICATION_JSON);
+        HttpEntity params = new StringEntity(jsonData, ContentType.APPLICATION_JSON);
         request.setEntity(params);
         try {
             listener.getLogger().printf("Batch Bind Pointers request called with %s%n", buildId);
@@ -137,11 +133,10 @@ public class ApplitoolsCommon {
         }
     }
 
-    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run<?,?> build,
+    public static void buildEnvVariablesForExternalUsage(Map<String, String> env, final Run<?, ?> build,
                                                          final TaskListener listener, FilePath workspace,
                                                          Launcher launcher, String serverURL, String applitoolsApiKey,
-                                                         Map<String, String> artifacts, boolean scmIntegrationEnabled)
-    {
+                                                         Map<String, String> artifacts, boolean scmIntegrationEnabled) {
         ApplitoolsCommon.env = env;
         String projectName = build.getParent().getDisplayName();
         MutableBoolean isCustom = new MutableBoolean(false);
@@ -154,10 +149,28 @@ public class ApplitoolsCommon {
             String buildId = null;
             if (env.get("APPLITOOLS_BATCH_ID") != null) {
                 buildId = env.get("APPLITOOLS_BATCH_ID");
-            }
-            else {
+            } else {
                 buildId = env.get("GIT_COMMIT");
             }
+
+            String apiKeySysEnv = System.getenv("APPLITOOLS_API_KEY");
+            if (applitoolsApiKey.equals(apiKeySysEnv)) {
+                listener.getLogger().println("API Key is the same as the one in the system environment variable APPLITOOLS_API_KEY");
+            }
+
+            String apiKeyEnv = env.get("APPLITOOLS_API_KEY");
+            if (applitoolsApiKey.equals(apiKeyEnv)) {
+                listener.getLogger().println("API Key is the same as the one in the environment variable APPLITOOLS_API_KEY");
+            }
+
+            if (apiKeySysEnv != null && apiKeySysEnv.equals(apiKeyEnv)) {
+                listener.getLogger().println("System env var APPLITOOLS_API_KEY is the same as the loaded env var");
+            }
+
+            if (System.getenv().containsKey("APPLITOOLS_SHOW_API_KEY")) {
+                listener.getLogger().println("APPLITOOLS_SHOW_API_KEY exists. API KEY: " + applitoolsApiKey);
+            }
+
 
             try {
                 sendBindBatchPointersRequest(serverURL, batchId, buildId, applitoolsApiKey, listener);
@@ -169,7 +182,7 @@ public class ApplitoolsCommon {
 
         String filepath = ARTIFACT_PATHS.get(APPLITOOLS_ARTIFACT_PREFIX + "_" + APPLITOOLS_BATCH_ID);
         FilePath batchIdFilePath = workspace.child(filepath);
-        if (isCustom.isTrue()){
+        if (isCustom.isTrue()) {
             try {
                 batchIdFilePath.write(batchId, StandardCharsets.UTF_8.name());
             } catch (IOException | InterruptedException e) {
@@ -187,7 +200,7 @@ public class ApplitoolsCommon {
         }
     }
 
-    public static void archiveArtifacts(Run<?,?> run, FilePath workspace, Launcher launcher,
+    public static void archiveArtifacts(Run<?, ?> run, FilePath workspace, Launcher launcher,
                                         final TaskListener listener) {
         try {
             ArtifactManager artifactManager = run.getArtifactManager();
@@ -197,23 +210,28 @@ public class ApplitoolsCommon {
         }
     }
 
-    public static Map<String, String> getEnv() { return env; }
-    public static String getEnv(String key) { return env.get(key); }
+    public static Map<String, String> getEnv() {
+        return env;
+    }
 
-    public static void closeBatch(Run<?,?> run, TaskListener listener, String serverURL,
+    public static String getEnv(String key) {
+        return env.get(key);
+    }
+
+    public static void closeBatch(Run<?, ?> run, TaskListener listener, String serverURL,
                                   boolean notifyOnCompletion, String applitoolsApiKey, boolean scmIntegrationEnabled)
             throws IOException {
         if (notifyOnCompletion && applitoolsApiKey != null && !applitoolsApiKey.isEmpty()) {
             String batchId = ApplitoolsStatusDisplayAction.generateBatchId(
-                env,
-                run.getParent().getDisplayName(),
-                run.getNumber(),
-                run.getTimestamp(),
-                ApplitoolsCommon.checkApplitoolsArtifacts(
-                    run.getArtifacts(),
-                    run.getArtifactManager().root()
-                ),
-                null, scmIntegrationEnabled
+                    env,
+                    run.getParent().getDisplayName(),
+                    run.getNumber(),
+                    run.getTimestamp(),
+                    ApplitoolsCommon.checkApplitoolsArtifacts(
+                            run.getArtifacts(),
+                            run.getArtifactManager().root()
+                    ),
+                    null, scmIntegrationEnabled
             );
             HttpClient httpClient = HttpClientBuilder.create().build();
             URI targetUrl = null;
@@ -241,7 +259,7 @@ public class ApplitoolsCommon {
     public static Map<String, String> checkApplitoolsArtifacts(List<? extends Run<?, ?>.Artifact> artifactList, VirtualFile file) {
         Map<String, String> result = new HashMap<>();
         if (!artifactList.isEmpty() && file != null) {
-            for (Run<?,?>.Artifact artifact : artifactList) {
+            for (Run<?, ?>.Artifact artifact : artifactList) {
                 String artifactFileName = artifact.getFileName();
                 Matcher m = artifactRegexp.matcher(artifactFileName);
                 if (m.find()) {
