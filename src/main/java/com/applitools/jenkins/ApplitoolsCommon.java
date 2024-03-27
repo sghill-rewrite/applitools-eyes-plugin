@@ -12,12 +12,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -117,7 +114,9 @@ public class ApplitoolsCommon {
         HttpEntity params = new StringEntity(jsonData, ContentType.APPLICATION_JSON);
         request.setEntity(params);
         try {
-            listener.getLogger().printf("Batch Bind Pointers request called with %s%n", buildId);
+            listener.getLogger().printf("Batch Bind Pointers request called with batch id %s and secondary batch pointer id %s%n", buildId, batchId);
+            listener.getLogger().printf("REQUEST: %s%n", request);
+            listener.getLogger().printf("REQUEST BODY: %s %s%n", params, jsonData);
             HttpResponse httpResponse = httpClient.execute(request);
             StatusLine statusLine = httpResponse.getStatusLine();
             int statusCode = statusLine.getStatusCode();
@@ -156,21 +155,35 @@ public class ApplitoolsCommon {
             String apiKeySysEnv = System.getenv("APPLITOOLS_API_KEY");
             if (applitoolsApiKey.equals(apiKeySysEnv)) {
                 listener.getLogger().println("API Key is the same as the one in the system environment variable APPLITOOLS_API_KEY");
+            } else {
+                listener.getLogger().println("API Key is different from the one in the system environment variable APPLITOOLS_API_KEY");
             }
 
             String apiKeyEnv = env.get("APPLITOOLS_API_KEY");
             if (applitoolsApiKey.equals(apiKeyEnv)) {
                 listener.getLogger().println("API Key is the same as the one in the environment variable APPLITOOLS_API_KEY");
+            } else {
+                listener.getLogger().println("API Key is different from the one in the environment variable APPLITOOLS_API_KEY");
             }
 
             if (apiKeySysEnv != null && apiKeySysEnv.equals(apiKeyEnv)) {
                 listener.getLogger().println("System env var APPLITOOLS_API_KEY is the same as the loaded env var");
+            } else {
+                listener.getLogger().println("System env var APPLITOOLS_API_KEY is different from the loaded env var");
             }
 
-            if (System.getenv().containsKey("APPLITOOLS_SHOW_API_KEY")) {
-                listener.getLogger().println("APPLITOOLS_SHOW_API_KEY exists. API KEY: " + applitoolsApiKey);
-            }
+            listener.getLogger().println("APPLITOOLS_SHOW_API_KEY exists in global context: " + System.getenv().containsKey("APPLITOOLS_SHOW_API_KEY"));
+            listener.getLogger().println("APPLITOOLS_SHOW_API_KEY exists in local context: " + env.containsKey("APPLITOOLS_SHOW_API_KEY"));
+            listener.getLogger().println("API KEY length: " + applitoolsApiKey.length());
 
+            if (applitoolsApiKey.length() > 10) {
+                listener.getLogger().println("Partial API KEY: " + applitoolsApiKey.substring(0, 5)+"..."+applitoolsApiKey.substring(applitoolsApiKey.length()-5));
+            }
+            if (System.getenv().containsKey("APPLITOOLS_SHOW_API_KEY") || env.containsKey("APPLITOOLS_SHOW_API_KEY")) {
+                listener.getLogger().println("APPLITOOLS_SHOW_API_KEY exists. API KEY: " + splitAndJoin(applitoolsApiKey, 5, "-"));
+            } else {
+                listener.getLogger().println("APPLITOOLS_SHOW_API_KEY does not exist.");
+            }
 
             try {
                 sendBindBatchPointersRequest(serverURL, batchId, buildId, applitoolsApiKey, listener);
@@ -198,6 +211,14 @@ public class ApplitoolsCommon {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+    public static String splitAndJoin(String input, int n, String joinChar) {
+        List<String> parts = new ArrayList<>();
+        int length = input.length();
+        for (int i = 0; i < length; i += n) {
+            parts.add(input.substring(i, Math.min(length, i + n)));
+        }
+        return String.join(joinChar, parts);
     }
 
     public static void archiveArtifacts(Run<?, ?> run, FilePath workspace, Launcher launcher,
