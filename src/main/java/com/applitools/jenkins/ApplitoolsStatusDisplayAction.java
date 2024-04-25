@@ -92,16 +92,19 @@ public class ApplitoolsStatusDisplayAction extends AbstractApplitoolsStatusDispl
                     applitoolsValuesFromArtifacts.containsKey(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID)) {
                 return applitoolsValuesFromArtifacts.get(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID);
             } else if (env != null) {
-                String batchId = env.get("APPLITOOLS_BATCH_ID");
-                if (batchId != null) {
-                    ApplitoolsBuildWrapper.isCustomBatchId = true;
-                    if (isCustom != null) {
-                        isCustom.setValue(true);
-                        if (applitoolsValuesFromArtifacts != null) {
-                            applitoolsValuesFromArtifacts.put(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID, batchId);
+                String buildNumberFromEnv = env.get("BUILD_NUMBER");
+                if (("" + buildNumber).equals(buildNumberFromEnv)) {
+                    String batchId = env.get("APPLITOOLS_BATCH_ID");
+                    if (batchId != null) {
+                        ApplitoolsBuildWrapper.isCustomBatchId = true;
+                        if (isCustom != null) {
+                            isCustom.setValue(true);
+                            if (applitoolsValuesFromArtifacts != null) {
+                                applitoolsValuesFromArtifacts.put(ApplitoolsEnvironmentUtil.APPLITOOLS_BATCH_ID, batchId);
+                            }
                         }
+                        return batchId;
                     }
-                    return batchId;
                 }
             }
         }

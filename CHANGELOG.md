@@ -1,3 +1,7 @@
+## [1.16.3] - 2024-04-25
+### Fixed
+- Fixed incorrect batch id when starting a new run and looking at older runs [Trello 3273](https://trello.com/c/GFvXy9jP) 
+
 ## [1.16] - 2024-03-07
 ### Added
 - Added support for Eyes SCM integration [Trello 3273](https://trello.com/c/GFvXy9jP)

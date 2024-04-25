@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>applitools-eyes</artifactId>
-    <version>1.16.2</version>
+    <version>1.16.3</version>
     <packaging>hpi</packaging>
     <name>Applitools Eyes Plugin</name>
     <url>https://github.com/jenkinsci/applitools-eyes-plugin</url>
@@ -33,7 +33,7 @@
         <gitHubRepo>jenkinsci/applitools-eyes-plugin</gitHubRepo>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
         <!-- Recommended version: https://www.jenkins.io/doc/developer/plugin-development/choosing-jenkins-baseline/ -->
-        <jenkins.version>2.414.3</jenkins.version>
+        <jenkins.version>2.440.2</jenkins.version>
         <!-- <= 1.71 vulnerable: https://www.jenkins.io/security/advisory/2019-03-06/#SECURITY-1342 -->
         <plugins.job-dsl.version>1.72</plugins.job-dsl.version>
         <version>${project.version}</version>
